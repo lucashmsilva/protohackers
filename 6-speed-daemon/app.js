@@ -188,7 +188,7 @@ function handleClient(client) {
           throw new Error('illegal msg type');
       }
     } catch (error) {
-      disconnectClient(client, error.message);
+      // disconnectClient(client, error.message);
     }
   });
 }
