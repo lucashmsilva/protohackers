@@ -4,6 +4,7 @@ const PORT = 6767;
 const cameras = [];
 const dispatchers = [];
 const clients = [];
+const plateRadinsgs = {};
 
 const MESSAGE_IDS = {
   ERROR: 0x10,
@@ -213,26 +214,26 @@ function handleCamera(client, cameraPayload) {
   }
 
   client.type = MESSAGE_IDS.IAMCAMERA;
-  cameras[id] = {
-    ...cameraPayload,
-    readings: {}
-  }
+  cameras[id] = cameraPayload;
 }
 
 function handlePlateReading(client, platePayload) {
-  // v = d/t*3600
   const { id } = client;
   const { plate, timestamp } = platePayload;
+  const { road, mile, limit } = cameras[id];
 
-  if (!cameras[id].readings[plate]) {
-    cameras[id].readings[plate] = [];
+  if (!plateRadinsgs[plate]) {
+    plateRadinsgs[plate] = {
+      readings: {
+        [road]: []
+      },
+      tickets: []
+    };
   }
+  plateRadinsgs[plate].readings[road].push({mile, timestamp});
 
-  cameras[id].readings[plate].push(timestamp);
-  cameras[id].readings[plate].sort().reverse();
-
-  // checkSpeedLimit()
-  // dispatchTicket()
+  // checkSpeedLimit(plate, road, limit, plateRadinsgs[plate].readings[road]); // v = d/t*3600
+  // dispatchTicket(plateRadinsgs[plate])
 }
 
 function resetClientMessageVariables(currentBuffer, readMessageSize) {
