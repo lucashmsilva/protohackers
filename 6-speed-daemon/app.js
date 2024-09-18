@@ -126,7 +126,7 @@ function handleClient(client) {
             limit: messageBuffer.readUInt16BE(4),
           };
 
-          console.log(`${id} | IAmCamera payload' ${JSON.stringify(currentMessagePayload)}`);
+          console.log(`${id} | IAmCamera payload ${JSON.stringify(currentMessagePayload)}`);
           handleCamera(client, currentMessagePayload);
 
           [messageBuffer, currentMessageType, currentMessagePayload] = resetClientMessageVariables(messageBuffer, IAMCAMERA_PAYLOAD_SIZE);
@@ -154,7 +154,7 @@ function handleClient(client) {
             roadsRead++;
           }
 
-          console.log(`${id} | IAmDispatcher payload' ${JSON.stringify(currentMessagePayload)}`);
+          console.log(`${id} | IAmDispatcher payload ${JSON.stringify(currentMessagePayload)}`);
           handleDispacher(client, currentMessagePayload);
 
           [messageBuffer, currentMessageType, currentMessagePayload] = resetClientMessageVariables(messageBuffer, IAMDISPATCHER_PAYLOAD_SIZE);
@@ -178,7 +178,7 @@ function handleClient(client) {
           currentMessagePayload.plate = decodeStr(PLATE_STR_PAYLOAD_SIZE, messageBuffer);
           currentMessagePayload.timestamp = messageBuffer.readUInt32BE(PLATE_STR_PAYLOAD_SIZE);
 
-          console.log(`${id} | Plate payload' ${JSON.stringify(currentMessagePayload)}`);
+          console.log(`${id} | Plate payload ${JSON.stringify(currentMessagePayload)}`);
           handlePlateReading(client, currentMessagePayload);
 
           [messageBuffer, currentMessageType, currentMessagePayload] = resetClientMessageVariables(messageBuffer, PLATE_STR_PAYLOAD_SIZE + 4); // plate.str (u8[]) + timestamp (u32)
@@ -233,8 +233,6 @@ function handleDispacher(client, currentMessagePayload) {
   client.type = MESSAGE_IDS.IAMDISPATCHER;
   client.roadsResposible = roads;
 
-  console.log(`${id} | dispatcher received ${JSON.stringify(currentMessagePayload)}`);
-
   for (const road of roads) {
     if (!dispatchers[road]) {
       dispatchers[road] = [];
@@ -242,7 +240,7 @@ function handleDispacher(client, currentMessagePayload) {
 
     dispatchers[road].push(id);
 
-    // dispatchTicketBacklog(road);
+    dispatchTicketBacklog(road);
 
     console.log(`${id} | dispatchers ${JSON.stringify(dispatchers)}`);
   }
@@ -268,17 +266,30 @@ function handlePlateReading(client, platePayload) {
 
   console.log(`${id} | plateReadings' ${JSON.stringify(plateReadings)}`);
 
-  // const [overspeed, mile1, timestamp1, mile2, timestamp2, speed] = checkSpeedLimit(plate, road, limit, plateReadings[plate].readings[road]); // v = d/t*3600
-  // if (!overspeed) {
-  //   return;
-  // }
+  const [overspeed, mile1, timestamp1, mile2, timestamp2, speed] = checkSpeedLimit(limit, plateReadings[plate].readings[road]); // v = d/t*3600
+  if (!overspeed) {
+    return;
+  }
 
-  // if (plateReadings[plate].tickets[road].find(ticket => ticket ===`${mile1}_${timestamp1}_${mile2}_${timestamp2}`)) {
-  //   return;
-  // }
-  // dispatchTicket({ plate, road, mile1, timestamp1, mile2, timestamp2, speed });
-  // after successfuly dispaching, register the ticket for the plate
-  // plateReadings[plate].tickets[road].push(`${mile1}_${timestamp1}_${mile2}_${timestamp2}`);
+  if (plateReadings[plate].tickets[road].find(ticket => ticket === `${mile1}_${timestamp1}_${mile2}_${timestamp2}`)) {
+    return;
+  }
+
+  dispatchTicket({ plate, road, mile1, timestamp1, mile2, timestamp2, speed });
+
+  plateReadings[plate].tickets[road].push(`${mile1}_${timestamp1}_${mile2}_${timestamp2}`);
+}
+
+function checkSpeedLimit(limit, readings) {
+  // v = d/t*3600
+}
+
+function dispatchTicket({ plate, road, mile1, timestamp1, mile2, timestamp2, speed }) {
+
+}
+
+function dispatchTicketBacklog(road) {
+
 }
 
 function resetClientMessageVariables(currentBuffer, readMessageSize) {
