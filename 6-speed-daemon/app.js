@@ -4,7 +4,6 @@ const PORT = 6767;
 const cameras = [];
 const dispatchers = [];
 const clients = [];
-const plateReadings = {};
 
 const MESSAGE_IDS = {
   ERROR: 0x10,
@@ -63,6 +62,14 @@ function disconnectClient(client, errorMessage) {
     sendError(client, errorMessage);
   }
 
+  if (client.type === MESSAGE_IDS.IAMCAMERA) {
+    delete cameras[id];
+  }
+
+  if (client.type === MESSAGE_IDS.IAMDISPATCHER) {
+    delete dispatchers[id];
+  }
+
   clientConn.destroy();
   delete clients[id];
 }
@@ -116,7 +123,7 @@ function handleClient(client) {
           };
 
           console.log(`${id} | IAmCamera payload' ${JSON.stringify(currentMessagePayload)}`);
-          // handleCamera();
+          handleCamera(client, currentMessagePayload);
 
           [messageBuffer, currentMessageType, currentMessagePayload] = resetClientMessageVariables(messageBuffer, IAMCAMERA_PAYLOAD_SIZE);
           break;
@@ -198,14 +205,24 @@ function handleHeartbeat(client, wantHeartbeatPayload) {
   return;
 }
 
+function handleCamera(client, cameraPayload) {
+  const { id } = client;
+
+  if (cameras[id]) {
+    throw new Error(`client ${id} already registered`);
+  }
+
+  client.type = MESSAGE_IDS.IAMCAMERA;
+  cameras[id] = {
+    ...cameraPayload,
+    readings: {}
+  }
+}
+
 function handlePlateReading(client, platePayload) {
   // v = d/t*3600
   const { id } = client;
   const { plate, timestamp } = platePayload;
-
-  if (!cameras[id].readings) {
-    cameras[id].readings = {};
-  }
 
   if (!cameras[id].readings[plate]) {
     cameras[id].readings[plate] = [];
