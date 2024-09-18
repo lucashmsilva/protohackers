@@ -218,6 +218,7 @@ function resetClientMessageVariables(messageBuffer, messageSize) {
 function decodeStr(strLength, buffer) {
   let charsRead = 0;
   let chars = [];
+
   while (chars.length < strLength) {
     chars.push(buffer.readUInt8(charsRead));
     charsRead++;
@@ -231,10 +232,7 @@ function encodeStr(str) {
   const buffer = Buffer.alloc(1 + asciiChars.length); // str length prefix (u8) + str size (u8[])
 
   buffer.writeUint8(asciiChars.length);
-
-  for (let i = 0; i < asciiChars.length; i++) {
-    buffer.writeUint8(asciiChars[i], 1 + i);
-  }
+  asciiChars.forEach((c, i) => buffer.writeUint8(c, 1 + i));
 
   return buffer;
 }
