@@ -1,9 +1,9 @@
 const net = require('net');
 
 const PORT = 6767;
-const cameras = [];
-const dispatchers = [];
-const clients = [];
+const cameras = {};
+const dispatchers = {};
+const clients = {};
 const plateReadings = {};
 const ticketBacklog = {};
 
