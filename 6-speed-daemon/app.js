@@ -219,7 +219,7 @@ function handleCamera(client, cameraPayload) {
   client.type = MESSAGE_IDS.IAMCAMERA;
   cameras[id] = cameraPayload;
 
-  console.log(`${id} | cameras' ${JSON.stringify(cameras)}`);
+  console.log(`${id} | cameras ${JSON.stringify(cameras)}`);
 }
 
 function handleDispacher(client, currentMessagePayload) {
@@ -233,6 +233,8 @@ function handleDispacher(client, currentMessagePayload) {
   client.type = MESSAGE_IDS.IAMDISPATCHER;
   client.roadsResposible = roads;
 
+  console.log(`${id} | dispatcher received ${JSON.stringify(currentMessagePayload)}`);
+
   for (const road of roads) {
     if (!dispatchers[road]) {
       dispatchers[road] = [];
@@ -242,7 +244,7 @@ function handleDispacher(client, currentMessagePayload) {
 
     // dispatchTicketBacklog(road);
 
-    console.log(`${id} | dispatchers' ${JSON.stringify(dispatchers)}`);
+    console.log(`${id} | dispatchers ${JSON.stringify(dispatchers)}`);
   }
 }
 
