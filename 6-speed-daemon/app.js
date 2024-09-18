@@ -4,7 +4,8 @@ const PORT = 6767;
 const cameras = [];
 const dispatchers = [];
 const clients = [];
-const plateRadinsgs = {};
+const plateReadings = {};
+const ticketBacklog = {};
 
 const MESSAGE_IDS = {
   ERROR: 0x10,
@@ -33,8 +34,8 @@ async function connectionHandler(clientConn) {
   console.log(`${sessionId} | client connected`);
   const client = {
     id: sessionId,
-    type: '',
-    clientConn: clientConn
+    type: null,
+    clientConn
   };
 
   clients[sessionId] = client;
@@ -68,6 +69,8 @@ function disconnectClient(client, errorMessage) {
   }
 
   if (client.type === MESSAGE_IDS.IAMDISPATCHER) {
+    const { roadsResposible } = client;
+    roadsResposible.forEach(road => delete dispatchers[road][id]);
     delete dispatchers[id];
   }
 
@@ -152,7 +155,7 @@ function handleClient(client) {
           }
 
           console.log(`${id} | IAmDispatcher payload' ${JSON.stringify(currentMessagePayload)}`);
-          // handleDispacher();
+          handleDispacher();
 
           [messageBuffer, currentMessageType, currentMessagePayload] = resetClientMessageVariables(messageBuffer, IAMDISPATCHER_PAYLOAD_SIZE);
           break;
@@ -176,7 +179,7 @@ function handleClient(client) {
           currentMessagePayload.timestamp = messageBuffer.readUInt32BE(PLATE_STR_PAYLOAD_SIZE);
 
           console.log(`${id} | Plate payload' ${JSON.stringify(currentMessagePayload)}`);
-          // handlePlate();
+          handlePlateReading(client, currentMessagePayload);
 
           [messageBuffer, currentMessageType, currentMessagePayload] = resetClientMessageVariables(messageBuffer, PLATE_STR_PAYLOAD_SIZE + 4); // plate.str (u8[]) + timestamp (u32)
           break;
@@ -207,14 +210,40 @@ function handleHeartbeat(client, wantHeartbeatPayload) {
 }
 
 function handleCamera(client, cameraPayload) {
-  const { id } = client;
+  const { id, type } = client;
 
-  if (cameras[id]) {
-    throw new Error(`client ${id} already registered`);
+  if (type) {
+    throw new Error(`client ${id} already registered as ${type}`);
   }
 
   client.type = MESSAGE_IDS.IAMCAMERA;
   cameras[id] = cameraPayload;
+
+  console.log(`${id} | cameras' ${JSON.stringify(cameras)}`);
+}
+
+function handleDispacher(client, currentMessagePayload) {
+  const { id, type } = client;
+  const { roads } = currentMessagePayload;
+
+  if (type) {
+    throw new Error(`client ${id} already registered as ${type}`);
+  }
+
+  client.type = MESSAGE_IDS.IAMDISPATCHER;
+  client.roadsResposible = roads;
+
+  for (const road of roads) {
+    if (!dispatchers[road]) {
+      dispatchers[road] = [];
+    }
+
+    dispatchers[road].push(id);
+
+    // dispatchTicketBacklog(road);
+
+    console.log(`${id} | dispatchers' ${JSON.stringify(dispatchers)}`);
+  }
 }
 
 function handlePlateReading(client, platePayload) {
@@ -222,18 +251,32 @@ function handlePlateReading(client, platePayload) {
   const { plate, timestamp } = platePayload;
   const { road, mile, limit } = cameras[id];
 
-  if (!plateRadinsgs[plate]) {
-    plateRadinsgs[plate] = {
+  if (!plateReadings[plate]) {
+    plateReadings[plate] = {
       readings: {
         [road]: []
       },
-      tickets: []
+      tickets: {
+        [road]: []
+      }
     };
   }
-  plateRadinsgs[plate].readings[road].push({mile, timestamp});
 
-  // checkSpeedLimit(plate, road, limit, plateRadinsgs[plate].readings[road]); // v = d/t*3600
-  // dispatchTicket(plateRadinsgs[plate])
+  plateReadings[plate].readings[road].push({ mile, timestamp });
+
+  console.log(`${id} | plateReadings' ${JSON.stringify(plateReadings)}`);
+
+  // const [overspeed, mile1, timestamp1, mile2, timestamp2, speed] = checkSpeedLimit(plate, road, limit, plateReadings[plate].readings[road]); // v = d/t*3600
+  // if (!overspeed) {
+  //   return;
+  // }
+
+  // if (plateReadings[plate].tickets[road].find(ticket => ticket ===`${mile1}_${timestamp1}_${mile2}_${timestamp2}`)) {
+  //   return;
+  // }
+  // dispatchTicket({ plate, road, mile1, timestamp1, mile2, timestamp2, speed });
+  // after successfuly dispaching, register the ticket for the plate
+  // plateReadings[plate].tickets[road].push(`${mile1}_${timestamp1}_${mile2}_${timestamp2}`);
 }
 
 function resetClientMessageVariables(currentBuffer, readMessageSize) {
