@@ -4,6 +4,7 @@ const PORT = 6767;
 const cameras = [];
 const dispatchers = [];
 const clients = [];
+const plateReadings = {};
 
 const MESSAGE_IDS = {
   ERROR: 0x10,
@@ -158,17 +159,18 @@ function handleClient(client) {
             messageBuffer = Buffer.from(messageBuffer).subarray(1);
           }
 
-          const PLATE_PAYLOAD_SIZE = currentMessagePayload.plate_size || 0; // str.length (u8)
-          if (messageBuffer.byteLength < PLATE_PAYLOAD_SIZE) {
+          const PLATE_STR_PAYLOAD_SIZE = currentMessagePayload.plate_size; // str.length (u8)
+          if (messageBuffer.byteLength < PLATE_STR_PAYLOAD_SIZE) {
             return;
           }
 
-          currentMessagePayload.plate = decodeStr(currentMessagePayload.plate_size, messageBuffer);
+          currentMessagePayload.plate = decodeStr(PLATE_STR_PAYLOAD_SIZE, messageBuffer);
+          currentMessagePayload.timestamp = messageBuffer.readUInt32BE(PLATE_STR_PAYLOAD_SIZE);
 
           console.log(`${id} | Plate payload' ${JSON.stringify(currentMessagePayload)}`);
           // handlePlate();
 
-          [messageBuffer, currentMessageType, currentMessagePayload] = resetClientMessageVariables(messageBuffer, PLATE_PAYLOAD_SIZE);
+          [messageBuffer, currentMessageType, currentMessagePayload] = resetClientMessageVariables(messageBuffer, PLATE_STR_PAYLOAD_SIZE + 4); // plate.str (u8[]) + timestamp (u32)
           break;
 
         default:
@@ -194,6 +196,26 @@ function handleHeartbeat(client, wantHeartbeatPayload) {
   client.heartbeatTimer = setInterval(() => clientConn.write(heartbeatPaylod), interval / 10 * 1000);
 
   return;
+}
+
+function handlePlateReading(client, platePayload) {
+  // v = d/t*3600
+  const { id } = client;
+  const { plate, timestamp } = platePayload;
+
+  if (!cameras[id].readings) {
+    cameras[id].readings = {};
+  }
+
+  if (!cameras[id].readings[plate]) {
+    cameras[id].readings[plate] = [];
+  }
+
+  cameras[id].readings[plate].push(timestamp);
+  cameras[id].readings[plate].sort().reverse();
+
+  // checkSpeedLimit()
+  // dispatchTicket()
 }
 
 function resetClientMessageVariables(currentBuffer, readMessageSize) {
