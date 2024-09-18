@@ -155,7 +155,7 @@ function handleClient(client) {
           }
 
           console.log(`${id} | IAmDispatcher payload' ${JSON.stringify(currentMessagePayload)}`);
-          handleDispacher();
+          handleDispacher(client, currentMessagePayload);
 
           [messageBuffer, currentMessageType, currentMessagePayload] = resetClientMessageVariables(messageBuffer, IAMDISPATCHER_PAYLOAD_SIZE);
           break;
