@@ -156,25 +156,17 @@ function handleClient(client) {
       case MESSAGE_IDS.PLATE:
         console.log(`${id} | processing Plate message`, messageBuffer);
 
-        if (!currentMessagePayload.finished_plate_str) {
+        if (!currentMessagePayload.plate_size >= 0) {
           currentMessagePayload = {
-            finished_plate_str: false,
             plate_size: messageBuffer.readUInt8(),
           }
           messageBuffer = Buffer.from(messageBuffer).subarray(1);
         }
 
-        const PLATE_PAYLOAD_SIZE = currentMessagePayload.plate_size || 1; // str.length (u8)
+        const PLATE_PAYLOAD_SIZE = currentMessagePayload.plate_size || 0; // str.length (u8)
         if (messageBuffer.byteLength < PLATE_PAYLOAD_SIZE) {
           return;
         }
-
-        // let charsRead = 0;
-        // let chars = [];
-        // while (chars.length < currentMessagePayload.plate_size) {
-        //   chars.push(messageBuffer.readUInt8(charsRead));
-        //   charsRead++;
-        // }
 
         currentMessagePayload.plate = decodeStr(currentMessagePayload.plate_size, messageBuffer);
 
