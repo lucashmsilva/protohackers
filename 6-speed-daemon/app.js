@@ -64,19 +64,15 @@ function disconnectClient(client) {
 
 function handleClient(client) {
   const { id, clientConn } = client;
-  let messageBuffer = Buffer.alloc(0);
-  let currentMessageType = null;
-  let currentMessagePayload = {};
+  let [messageBuffer, currentMessageType, currentMessagePayload] = resetClientMessageVariables();
 
   clientConn.on('data', (chunk) => {
 
     if (!currentMessageType) { // if currentMessageType is set, a message payload is beeing read
       currentMessageType = Buffer.from(chunk).readUInt8();
-      console.log(`${id} | message type ${currentMessageType}`);
+      messageBuffer = Buffer.from(chunk).subarray(1);
 
-      if (chunk.byteLength > 1) {
-        messageBuffer = Buffer.from(chunk).subarray(1);
-      }
+      console.log(`${id} | message type ${currentMessageType}`);
     } else {
       messageBuffer = Buffer.concat([messageBuffer, chunk]); // concat the previous read buffer with the current read chunk
     }
@@ -202,17 +198,16 @@ function handleHeartbeat(client, wantHeartbeatPayload) {
   return;
 }
 
-function resetClientMessageVariables(messageBuffer, messageSize) {
-  if (messageBuffer.byteLength > messageSize) {
-    messageBuffer = Buffer.from(messageBuffer).subarray(messageSize);
-  } else {
-    messageBuffer = Buffer.alloc(0);
+function resetClientMessageVariables(currentBuffer, readMessageSize) {
+  const messagetype = null;
+  const messagePayload = {};
+  let messageBuffer = Buffer.alloc(0);
+
+  if (currentBuffer?.byteLength > readMessageSize) {
+    messageBuffer = Buffer.from(currentBuffer).subarray(readMessageSize);
   }
 
-  const currentMessageType = null;
-  const currentMessagePayload = {};
-
-  return [messageBuffer, currentMessageType, currentMessagePayload];
+  return [messageBuffer, messagetype, messagePayload];
 }
 
 function decodeStr(strLength, buffer) {
