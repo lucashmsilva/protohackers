@@ -314,7 +314,7 @@ function dispatchTicket({ plate, road, mile1, timestamp1, mile2, timestamp2, spe
   console.log('dispachers', dispatchers);
   console.log('dispatchers[road]', dispatchers[road]);
   console.log('dispatchers[road][0]', dispatchers[road][0]);
-  console.log('clients', JSON.stringify(clients));
+  console.log('clients', JSON.stringify(clients[dispatchers[road][0]]));
 
   const dispatcherId = dispatchers[road][0];
   const { clientConn } = clients[dispatcherId];
