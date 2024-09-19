@@ -285,10 +285,10 @@ function checkSpeedLimit(limit, readings) {
   let overspeed = false;
 
   for (let i = 0; i < readings.length; i++) {
-    const [ mile1, timestamp1 ] = readings[i];
+    const [ mile1, timestamp1 ] = Object.values(readings[i]);
 
     for (let j = i + 1; j < readings.length; j++) {
-      const [ mile2, timestamp2 ] = readings[j];
+      const [ mile2, timestamp2 ] = Object.values(readings[j]);
 
       const distance = Math.abs(mile2 - mile1);
       const time = timestamp2 - timestamp1;
