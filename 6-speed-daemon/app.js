@@ -271,7 +271,7 @@ function handlePlateReading(client, platePayload) {
   const [overspeed, mile1, timestamp1, mile2, timestamp2, speed] = checkSpeedLimit(limit, plateReadings[plate].readings[road]); // v = d/t*3600
   if (!overspeed) {
     return;
-  } 
+  }
 
   if (plateReadings[plate].tickets[road].find(ticket => ticket === `${mile1}_${timestamp1}_${mile2}_${timestamp2}`)) {
     return;
@@ -286,10 +286,10 @@ function checkSpeedLimit(limit, readings) {
   let overspeed = false;
 
   for (let i = 0; i < readings.length; i++) {
-    const [ mile1, timestamp1 ] = Object.values(readings[i]);
+    const [mile1, timestamp1] = Object.values(readings[i]);
 
     for (let j = i + 1; j < readings.length; j++) {
-      const [ mile2, timestamp2 ] = Object.values(readings[j]);
+      const [mile2, timestamp2] = Object.values(readings[j]);
 
       const distance = Math.abs(mile2 - mile1);
       const time = timestamp2 - timestamp1;
@@ -302,11 +302,12 @@ function checkSpeedLimit(limit, readings) {
     }
   }
 
-  return overspeed;
+  return [overspeed];
 }
 
 function dispatchTicket({ plate, road, mile1, timestamp1, mile2, timestamp2, speed }) {
   if (!dispatchers[road]) {
+    ticketBacklog[road] = ticketBacklog[road] || { [road]: [] };
     ticketBacklog[road].push({ plate, mile1, timestamp1, mile2, timestamp2, speed });
   }
 
@@ -314,7 +315,7 @@ function dispatchTicket({ plate, road, mile1, timestamp1, mile2, timestamp2, spe
   console.log('dispatchers[road]', dispatchers[road]);
   console.log('dispatchers[road][0]', dispatchers[road][0]);
   console.log('clients', JSON.stringify(clients));
-  
+
   const dispatcherId = dispatchers[road][0];
   const { clientConn } = clients[dispatcherId];
 
