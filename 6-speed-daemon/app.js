@@ -188,7 +188,8 @@ function handleClient(client) {
           throw new Error('illegal msg type');
       }
     } catch (error) {
-      // disconnectClient(client, error.message);
+      console.log(`${id} | Error `, error);
+      disconnectClient(client, error.message);
     }
   });
 }
@@ -294,7 +295,7 @@ function checkSpeedLimit(limit, readings) {
       const time = timestamp2 - timestamp1;
       const speed = distance / time * 3600;
       console.log('speed', speed);
-      console.log('mile1, timestamp1, mile2, timestamp2',  mile1, timestamp1, mile2, timestamp2);
+      console.log('mile1, timestamp1, mile2, timestamp2, limit',  mile1, timestamp1, mile2, timestamp2, limit);
       
 
       if (speed > limit) { // rounding
