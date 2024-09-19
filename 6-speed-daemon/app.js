@@ -89,107 +89,110 @@ function handleClient(client) {
   clientConn.on('data', (chunk) => {
     messageBuffer = Buffer.concat([messageBuffer, chunk]); // concat the previous read buffer with the current read chunk
 
-    if (!currentMessageType) { // if currentMessageType is not set, it means a new message is beeing read. So it reads the first u8 to get the message type
-      currentMessageType = Buffer.from(chunk).readUInt8();
-      messageBuffer = Buffer.from(chunk).subarray(1); // overrides the current message buffer with the rest of the chunk (chunk minus the first u8 that was read)
+    while (messageBuffer.byteLength > 0) {
+      if (!currentMessageType) { // if currentMessageType is not set, it means a new message is beeing read. So it reads the first u8 to get the message type
+        currentMessageType = Buffer.from(chunk).readUInt8();
+        messageBuffer = Buffer.from(chunk).subarray(1); // overrides the current message buffer with the rest of the chunk (chunk minus the first u8 that was read)
 
-      console.log(`${id} | message type ${currentMessageType}`);
-    }
-
-    try {
-      switch (currentMessageType) {
-        case MESSAGE_IDS.WANTHEARTBEAT:
-          console.log(`${id} | processing WantHeartbeat message`, messageBuffer);
-          const WANTHEARTBEAT_PAYLOAD_SIZE = 4; // interval (u32);
-
-          currentMessagePayload = {
-            interval: messageBuffer.readUInt32BE()
-          };
-
-          console.log(`${id} | WantHeartbeat payload ${JSON.stringify(currentMessagePayload)}`);
-          handleHeartbeat(client, currentMessagePayload);
-
-          [messageBuffer, currentMessageType, currentMessagePayload] = resetClientMessageVariables(messageBuffer, WANTHEARTBEAT_PAYLOAD_SIZE);
-          break;
-
-        case MESSAGE_IDS.IAMCAMERA:
-          console.log(`${id} | processing IAmCamera message`, messageBuffer);
-          const IAMCAMERA_PAYLOAD_SIZE = 2 + 2 + 2; // road (u16) + mile (u16) + limit (u16);
-
-          if (messageBuffer.byteLength < IAMCAMERA_PAYLOAD_SIZE) {
-            return;
-          }
-
-          currentMessagePayload = {
-            road: messageBuffer.readUInt16BE(),
-            mile: messageBuffer.readUInt16BE(2),
-            limit: messageBuffer.readUInt16BE(4),
-          };
-
-          console.log(`${id} | IAmCamera payload ${JSON.stringify(currentMessagePayload)}`);
-          handleCamera(client, currentMessagePayload);
-
-          [messageBuffer, currentMessageType, currentMessagePayload] = resetClientMessageVariables(messageBuffer, IAMCAMERA_PAYLOAD_SIZE);
-          break;
-
-        case MESSAGE_IDS.IAMDISPATCHER:
-          console.log(`${id} | processing IAmDispatcher message`, messageBuffer);
-
-          if (!currentMessagePayload.numroads) {
-            currentMessagePayload = {
-              numroads: messageBuffer.readUInt8()
-            }
-            messageBuffer = Buffer.from(messageBuffer).subarray(1);
-          }
-
-          const IAMDISPATCHER_PAYLOAD_SIZE = (currentMessagePayload.numroads || 1) * 2; // numroads (u8) * roads (u16[])
-          if (messageBuffer.byteLength < IAMDISPATCHER_PAYLOAD_SIZE) {
-            return;
-          }
-
-          let roadsRead = 0;
-          currentMessagePayload.roads = [];
-          while (currentMessagePayload.roads.length < currentMessagePayload.numroads) {
-            currentMessagePayload.roads.push(messageBuffer.readUInt16BE(2 * roadsRead));
-            roadsRead++;
-          }
-
-          console.log(`${id} | IAmDispatcher payload ${JSON.stringify(currentMessagePayload)}`);
-          handleDispacher(client, currentMessagePayload);
-
-          [messageBuffer, currentMessageType, currentMessagePayload] = resetClientMessageVariables(messageBuffer, IAMDISPATCHER_PAYLOAD_SIZE);
-          break;
-
-        case MESSAGE_IDS.PLATE:
-          console.log(`${id} | processing Plate message`, messageBuffer);
-
-          if (!currentMessagePayload.plate_size >= 0) {
-            currentMessagePayload = {
-              plate_size: messageBuffer.readUInt8(),
-            }
-            messageBuffer = Buffer.from(messageBuffer).subarray(1);
-          }
-
-          const PLATE_STR_PAYLOAD_SIZE = currentMessagePayload.plate_size; // str.length (u8)
-          if (messageBuffer.byteLength < PLATE_STR_PAYLOAD_SIZE) {
-            return;
-          }
-
-          currentMessagePayload.plate = decodeStr(PLATE_STR_PAYLOAD_SIZE, messageBuffer);
-          currentMessagePayload.timestamp = messageBuffer.readUInt32BE(PLATE_STR_PAYLOAD_SIZE);
-
-          console.log(`${id} | Plate payload ${JSON.stringify(currentMessagePayload)}`);
-          handlePlateReading(client, currentMessagePayload);
-
-          [messageBuffer, currentMessageType, currentMessagePayload] = resetClientMessageVariables(messageBuffer, PLATE_STR_PAYLOAD_SIZE + 4); // plate.str (u8[]) + timestamp (u32)
-          break;
-
-        default:
-          throw new Error('illegal msg type');
+        console.log(`${id} | message type ${currentMessageType}`);
       }
-    } catch (error) {
-      console.log(`${id} | Error `, error);
-      disconnectClient(client, error.message);
+
+      try {
+        switch (currentMessageType) {
+          case MESSAGE_IDS.WANTHEARTBEAT:
+            console.log(`${id} | processing WantHeartbeat message`, messageBuffer);
+            const WANTHEARTBEAT_PAYLOAD_SIZE = 4; // interval (u32);
+
+            currentMessagePayload = {
+              interval: messageBuffer.readUInt32BE()
+            };
+
+            console.log(`${id} | WantHeartbeat payload ${JSON.stringify(currentMessagePayload)}`);
+            handleHeartbeat(client, currentMessagePayload);
+
+            [messageBuffer, currentMessageType, currentMessagePayload] = resetClientMessageVariables(currentMessageType, messageBuffer, WANTHEARTBEAT_PAYLOAD_SIZE);
+            break;
+
+          case MESSAGE_IDS.IAMCAMERA:
+            console.log(`${id} | processing IAmCamera message`, messageBuffer);
+            const IAMCAMERA_PAYLOAD_SIZE = 2 + 2 + 2; // road (u16) + mile (u16) + limit (u16);
+
+            if (messageBuffer.byteLength < IAMCAMERA_PAYLOAD_SIZE) {
+              return;
+            }
+
+            currentMessagePayload = {
+              road: messageBuffer.readUInt16BE(),
+              mile: messageBuffer.readUInt16BE(2),
+              limit: messageBuffer.readUInt16BE(4),
+            };
+
+            console.log(`${id} | IAmCamera payload ${JSON.stringify(currentMessagePayload)}`);
+            handleCamera(client, currentMessagePayload);
+
+            [messageBuffer, currentMessageType, currentMessagePayload] = resetClientMessageVariables(messageBuffer, IAMCAMERA_PAYLOAD_SIZE);
+            break;
+
+          case MESSAGE_IDS.IAMDISPATCHER:
+            console.log(`${id} | processing IAmDispatcher message`, messageBuffer);
+
+            if (!currentMessagePayload.numroads) {
+              currentMessagePayload = {
+                numroads: messageBuffer.readUInt8()
+              }
+              messageBuffer = Buffer.from(messageBuffer).subarray(1);
+            }
+
+            const IAMDISPATCHER_PAYLOAD_SIZE = (currentMessagePayload.numroads || 1) * 2; // numroads (u8) * roads (u16[])
+            if (messageBuffer.byteLength < IAMDISPATCHER_PAYLOAD_SIZE) {
+              return;
+            }
+
+            let roadsRead = 0;
+            currentMessagePayload.roads = [];
+            while (currentMessagePayload.roads.length < currentMessagePayload.numroads) {
+              currentMessagePayload.roads.push(messageBuffer.readUInt16BE(2 * roadsRead));
+              roadsRead++;
+            }
+
+            console.log(`${id} | IAmDispatcher payload ${JSON.stringify(currentMessagePayload)}`);
+            handleDispacher(client, currentMessagePayload);
+
+            [messageBuffer, currentMessageType, currentMessagePayload] = resetClientMessageVariables(messageBuffer, IAMDISPATCHER_PAYLOAD_SIZE);
+            break;
+
+          case MESSAGE_IDS.PLATE:
+            console.log(`${id} | processing Plate message`, messageBuffer);
+
+            if (!currentMessagePayload.plate_size >= 0) {
+              currentMessagePayload = {
+                plate_size: messageBuffer.readUInt8(),
+              }
+              messageBuffer = Buffer.from(messageBuffer).subarray(1);
+            }
+
+            const PLATE_STR_PAYLOAD_SIZE = currentMessagePayload.plate_size; // str.length (u8)
+            if (messageBuffer.byteLength < PLATE_STR_PAYLOAD_SIZE) {
+              return;
+            }
+
+            currentMessagePayload.plate = decodeStr(PLATE_STR_PAYLOAD_SIZE, messageBuffer);
+            currentMessagePayload.timestamp = messageBuffer.readUInt32BE(PLATE_STR_PAYLOAD_SIZE);
+
+            console.log(`${id} | Plate payload ${JSON.stringify(currentMessagePayload)}`);
+            handlePlateReading(client, currentMessagePayload);
+
+            [messageBuffer, currentMessageType, currentMessagePayload] = resetClientMessageVariables(messageBuffer, PLATE_STR_PAYLOAD_SIZE + 4); // plate.str (u8[]) + timestamp (u32)
+            break;
+
+          default:
+            throw new Error('illegal msg type');
+        }
+      }
+      catch (error) {
+        console.log(`${id} | Error `, error);
+        disconnectClient(client, error.message);
+      }
     }
   });
 }
