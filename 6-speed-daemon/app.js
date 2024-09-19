@@ -294,9 +294,6 @@ function checkSpeedLimit(limit, readings) {
       const distance = Math.abs(mile2 - mile1);
       const time = timestamp2 - timestamp1;
       const speed = distance / time * 3600;
-      console.log('speed', speed);
-      console.log('mile1, timestamp1, mile2, timestamp2, limit',  mile1, timestamp1, mile2, timestamp2, limit);
-      
 
       if (speed > limit) { // rounding
         overspeed = true;
@@ -313,6 +310,11 @@ function dispatchTicket({ plate, road, mile1, timestamp1, mile2, timestamp2, spe
     ticketBacklog[road].push({ plate, mile1, timestamp1, mile2, timestamp2, speed });
   }
 
+  console.log('dispachers', dispatchers);
+  console.log('dispatchers[road]', dispatchers[road]);
+  console.log('dispatchers[road][0]', dispatchers[road][0]);
+  console.log('clients', JSON.stringify(clients));
+  
   const dispatcherId = dispatchers[road][0];
   const { clientConn } = clients[dispatcherId];
 
