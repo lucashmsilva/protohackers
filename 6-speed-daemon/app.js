@@ -201,6 +201,8 @@ function processMessage(chunk, client) {
     catch (error) {
       console.log(`${id} | Error `, error);
       disconnectClient(client, error.message);
+
+      break;
     }
   }
 }
