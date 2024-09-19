@@ -309,6 +309,8 @@ function dispatchTicket({ plate, road, mile1, timestamp1, mile2, timestamp2, spe
   if (!dispatchers[road]) {
     ticketBacklog[road] = ticketBacklog[road] || [];
     ticketBacklog[road].push({ plate, mile1, timestamp1, mile2, timestamp2, speed });
+
+    return;
   }
 
   const dispatcherId = dispatchers[road][0];
