@@ -70,7 +70,7 @@ function disconnectClient(client, errorMessage) {
 
   if (client.type === MESSAGE_IDS.IAMDISPATCHER) {
     const { roadsResposible } = client;
-    roadsResposible.forEach(road => delete dispatchers[road][id]);
+    roadsResposible.forEach(road => delete dispatchers[road][id]); //  fix deletion of dispatcher on disconnect
     delete dispatchers[id];
   }
 
@@ -307,7 +307,7 @@ function checkSpeedLimit(limit, readings) {
 
 function dispatchTicket({ plate, road, mile1, timestamp1, mile2, timestamp2, speed }) {
   if (!dispatchers[road]) {
-    ticketBacklog[road] = ticketBacklog[road] || { [road]: [] };
+    ticketBacklog[road] = ticketBacklog[road] || [];
     ticketBacklog[road].push({ plate, mile1, timestamp1, mile2, timestamp2, speed });
   }
 
@@ -316,7 +316,10 @@ function dispatchTicket({ plate, road, mile1, timestamp1, mile2, timestamp2, spe
 }
 
 function dispatchTicketBacklog(road) {
-
+  const backlogForRoad = ticketBacklog[road];
+  backlogForRoad.forEach(ticket => {
+    dispatchTicket({road, ...ticket});
+  });
 }
 
 function decodeStr(strLength, buffer) {
