@@ -110,7 +110,7 @@ function handleClient(client) {
             console.log(`${id} | WantHeartbeat payload ${JSON.stringify(currentMessagePayload)}`);
             handleHeartbeat(client, currentMessagePayload);
 
-            [messageBuffer, currentMessageType, currentMessagePayload] = resetClientMessageVariables(currentMessageType, messageBuffer, WANTHEARTBEAT_PAYLOAD_SIZE);
+            [messageBuffer, currentMessageType, currentMessagePayload] = resetClientMessageVariables(messageBuffer, WANTHEARTBEAT_PAYLOAD_SIZE);
             break;
 
           case MESSAGE_IDS.IAMCAMERA:
