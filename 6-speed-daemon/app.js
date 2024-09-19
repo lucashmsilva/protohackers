@@ -294,6 +294,7 @@ function checkSpeedLimit(limit, readings) {
       const time = timestamp2 - timestamp1;
       const speed = distance / time * 3600;
       console.log('speed', speed);
+      console.log('{ plate, road, mile1, timestamp1, mile2, timestamp2, speed }', { plate, road, mile1, timestamp1, mile2, timestamp2, speed });
       
 
       if (speed > limit) { // rounding
