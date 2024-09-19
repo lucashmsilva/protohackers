@@ -265,12 +265,12 @@ function handlePlateReading(client, platePayload) {
   plateReadings[plate].readings[road].push({ mile, timestamp });
   plateReadings[plate].readings[road].sort((r1, r2) => r1.timestamp - r2.timestamp);
 
-  console.log(`${id} | plateReadings' ${JSON.stringify(plateReadings)}`);
+  console.log(`${id} | plateReadings ${JSON.stringify(plateReadings)}`);
 
   const [overspeed, mile1, timestamp1, mile2, timestamp2, speed] = checkSpeedLimit(limit, plateReadings[plate].readings[road]); // v = d/t*3600
   if (!overspeed) {
     return;
-  }
+  } 
 
   if (plateReadings[plate].tickets[road].find(ticket => ticket === `${mile1}_${timestamp1}_${mile2}_${timestamp2}`)) {
     return;
@@ -293,6 +293,8 @@ function checkSpeedLimit(limit, readings) {
       const distance = Math.abs(mile2 - mile1);
       const time = timestamp2 - timestamp1;
       const speed = distance / time * 3600;
+      console.log('speed', speed);
+      
 
       if (speed > limit) { // rounding
         overspeed = true;
