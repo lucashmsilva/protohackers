@@ -263,6 +263,7 @@ function handlePlateReading(client, platePayload) {
   }
 
   plateReadings[plate].readings[road].push({ mile, timestamp });
+  plateReadings[plate].readings[road].sort((r1, r2) => r1.timestamp - r2.timestamp);
 
   console.log(`${id} | plateReadings' ${JSON.stringify(plateReadings)}`);
 
@@ -281,27 +282,41 @@ function handlePlateReading(client, platePayload) {
 }
 
 function checkSpeedLimit(limit, readings) {
-  // v = d/t*3600
+  let overspeed = false;
+
+  for (let i = 0; i < readings.length; i++) {
+    const { mile1, timestamp1 } = readings[i];
+
+    for (let j = i + 1; j < readings.length; j++) {
+      const { mile2, timestamp2 } = readings[j];
+
+      const distance = Math.abs(mile2 - mile1);
+      const time = timestamp2 - timestamp1;
+      const speed = distance / time * 3600;
+
+      if (speed > limit) { // rounding
+        overspeed = true;
+        return [overspeed, mile1, timestamp1, mile2, timestamp2, speed];
+      }
+    }
+  }
+
+  return overspeed;
 }
 
 function dispatchTicket({ plate, road, mile1, timestamp1, mile2, timestamp2, speed }) {
+  if (!dispatchers[road]) {
+    ticketBacklog[road].push({ plate, mile1, timestamp1, mile2, timestamp2, speed });
+  }
 
+  const dispatcherId = dispatchers[road][0];
+  const { clientConn } = clients[dispatcherId];
+
+  sendTicket(clientConn, { plate, road, mile1, timestamp1, mile2, timestamp2, speed });
 }
 
 function dispatchTicketBacklog(road) {
 
-}
-
-function resetClientMessageVariables(currentBuffer, readMessageSize) {
-  const messagetype = null;
-  const messagePayload = {};
-  let messageBuffer = Buffer.alloc(0);
-
-  if (currentBuffer?.byteLength > readMessageSize) {
-    messageBuffer = Buffer.from(currentBuffer).subarray(readMessageSize);
-  }
-
-  return [messageBuffer, messagetype, messagePayload];
 }
 
 function decodeStr(strLength, buffer) {
@@ -326,6 +341,32 @@ function encodeStr(str) {
   return buffer;
 }
 
+function encodeTicketData({ plate, road, mile1, timestamp1, mile2, timestamp2, speed }) {
+  const encodedPlate = encodeStr(plate);
+  const encodedTicket = Buffer.alloc(16);
+
+  encodedTicket.writeUint16BE(road);
+  encodedTicket.writeUint16BE(mile1);
+  encodedTicket.writeUint32BE(timestamp1);
+  encodedTicket.writeUint16BE(mile2);
+  encodedTicket.writeUint32BE(timestamp2);
+  encodedTicket.writeUint16BE(speed * 100);
+
+  return Buffer.concat([encodedPlate, encodedTicket]);
+}
+
+function sendTicket(client, { plate, road, mile1, timestamp1, mile2, timestamp2, speed }) {
+  const { clientConn } = client;
+  const encodedTicket = encodeTicketData({ plate, road, mile1, timestamp1, mile2, timestamp2, speed });
+
+  const ticketMessageTypePrefix = Buffer.alloc(1);
+  ticketMessageTypePrefix.writeInt8(MESSAGE_IDS.TICKET);
+
+  const ticketPaylod = Buffer.concat([ticketMessageTypePrefix, encodedTicket]);
+
+  clientConn.write(ticketPaylod);
+}
+
 function sendError(client, message) {
   const { clientConn } = client;
   const encodedMessage = encodeStr(message);
@@ -338,6 +379,18 @@ function sendError(client, message) {
   clientConn.write(errorPaylod);
 
   return;
+}
+
+function resetClientMessageVariables(currentBuffer, readMessageSize) {
+  const messagetype = null;
+  const messagePayload = {};
+  let messageBuffer = Buffer.alloc(0);
+
+  if (currentBuffer?.byteLength > readMessageSize) {
+    messageBuffer = Buffer.from(currentBuffer).subarray(readMessageSize);
+  }
+
+  return [messageBuffer, messagetype, messagePayload];
 }
 
 async function main() {
