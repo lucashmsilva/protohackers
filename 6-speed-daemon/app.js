@@ -311,11 +311,6 @@ function dispatchTicket({ plate, road, mile1, timestamp1, mile2, timestamp2, spe
     ticketBacklog[road].push({ plate, mile1, timestamp1, mile2, timestamp2, speed });
   }
 
-  console.log('dispachers', dispatchers);
-  console.log('dispatchers[road]', dispatchers[road]);
-  console.log('dispatchers[road][0]', dispatchers[road][0]);
-  console.log('clients', JSON.stringify(clients[dispatchers[road][0]].clientConn));
-
   const dispatcherId = dispatchers[road][0];
   sendTicket(clients[dispatcherId], { plate, road, mile1, timestamp1, mile2, timestamp2, speed });
 }
