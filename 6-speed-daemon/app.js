@@ -319,9 +319,12 @@ function dispatchTicket({ plate, road, mile1, timestamp1, mile2, timestamp2, spe
 
 function dispatchTicketBacklog(road) {
   const backlogForRoad = ticketBacklog[road];
-  backlogForRoad.forEach(ticket => {
-    dispatchTicket({road, ...ticket});
-  });
+
+  if (!backlogForRoad) {
+    return;
+  }
+
+  backlogForRoad.forEach(ticket => dispatchTicket({ road, ...ticket }));
 }
 
 function decodeStr(strLength, buffer) {
