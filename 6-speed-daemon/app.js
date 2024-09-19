@@ -354,11 +354,11 @@ function encodeTicketData({ plate, road, mile1, timestamp1, mile2, timestamp2, s
   const encodedTicket = Buffer.alloc(16);
 
   encodedTicket.writeUint16BE(road);
-  encodedTicket.writeUint16BE(mile1);
-  encodedTicket.writeUint32BE(timestamp1);
-  encodedTicket.writeUint16BE(mile2);
-  encodedTicket.writeUint32BE(timestamp2);
-  encodedTicket.writeUint16BE(speed * 100);
+  encodedTicket.writeUint16BE(mile1, 2); // u16
+  encodedTicket.writeUint32BE(timestamp1, 2 + 2); // u16 + u16
+  encodedTicket.writeUint16BE(mile2, 2 + 2 + 4); // u16 + u16 + u32
+  encodedTicket.writeUint32BE(timestamp2, 2 + 2 + 4 + 2); // u16 + u16 + u32 + u16
+  encodedTicket.writeUint16BE(speed * 100, 2 + 2 + 4 + 2 + 4); // u16 + u16 + u32 + u16 + u32
 
   return Buffer.concat([encodedPlate, encodedTicket]);
 }
