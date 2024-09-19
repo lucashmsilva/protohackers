@@ -190,7 +190,7 @@ function processMessage(chunk, client) {
           // handlePlateReading(client, currentMessagePayload);
 
           console.log('============ buffer size', messageBuffer.byteLength);
-          [messageBuffer, currentMessageType, currentMessagePayload] = resetClientMessageVariables(messageBuffer, PLATE_STR_PAYLOAD_SIZE + 4 * messagesReadInBuffer); // plate.str (u8[]) + timestamp (u32)
+          [messageBuffer, currentMessageType, currentMessagePayload] = resetClientMessageVariables(messageBuffer, 1 + PLATE_STR_PAYLOAD_SIZE + 4 * messagesReadInBuffer); // plate.length (u8) + plate.str (u8[]) + timestamp (u32)
           console.log('============ buffer size', messageBuffer.byteLength);
           break;
 
