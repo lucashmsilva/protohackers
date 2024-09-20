@@ -309,7 +309,7 @@ function handlePlateReading(client, platePayload) {
     for (let i = day1; i <= day2; i++) {
       if (plateReadings[plate].daysTicketed.find(day => day === i)) {
         console.log(`${id} | ${plate} has already been ticketed on the ${i} day`);
-        break;
+        return;
       }
     }
 
