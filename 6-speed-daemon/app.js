@@ -17,7 +17,6 @@ const MESSAGE_IDS = {
   IAMDISPATCHER: 0x81,
 };
 
-
 function setupServer(connectionHandler) {
   const server = net.createServer()
     .listen(PORT, () => {
@@ -204,7 +203,7 @@ function handleClient(client) {
             currentMessagePayload.plate = decodeStr(currentMessagePayload.plate_size, messageBuffer);
             currentMessagePayload.timestamp = messageBuffer.readUInt32BE(currentMessagePayload.plate_size);
 
-            // console.log(`${id} | Plate payload ${JSON.stringify(currentMessagePayload)}`);
+            console.log(`${id} | Plate payload ${JSON.stringify(currentMessagePayload)}`);
             handlePlateReading(client, currentMessagePayload);
 
             messageBuffer = Buffer.from(messageBuffer).subarray(PLATE_PAYLOAD_SIZE);
@@ -298,7 +297,7 @@ function handlePlateReading(client, platePayload) {
   plateReadings[plate].readings[road].push({ mile, timestamp });
   plateReadings[plate].readings[road].sort((r1, r2) => r1.timestamp - r2.timestamp);
 
-  console.log(`${id} | plateReadings ${JSON.stringify(plateReadings)}`);
+  // console.log(`${id} | plateReadings ${JSON.stringify(plateReadings)}`);
 
   const [overspeed, mile1, timestamp1, mile2, timestamp2, speed] = checkSpeedLimit(limit, plateReadings[plate].readings[road]); // v = d/t*3600
   if (!overspeed) {
