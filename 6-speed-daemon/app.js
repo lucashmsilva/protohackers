@@ -311,6 +311,7 @@ function handlePlateReading(client, platePayload) {
   dispatchTicket({ plate, road, mile1, timestamp1, mile2, timestamp2, speed });
 
   plateReadings[plate].daysTicketed.push(Math.floor(timestamp1 / 86400));
+  plateReadings[plate].daysTicketed.push(Math.floor(timestamp2 / 86400));
 }
 
 function checkSpeedLimit(limit, readings) {
