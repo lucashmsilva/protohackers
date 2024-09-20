@@ -337,10 +337,6 @@ function checkSpeedLimit(limit, readings) {
 }
 
 function dispatchTicket({ plate, road, mile1, timestamp1, mile2, timestamp2, speed }) {
-  if (plateReadings[plate].daysTicketed.find(ticket => ticket === Math.floor(timestamp1 / 86400))) {
-    return;
-  }
-
   if (!dispatchers[road]) {
     ticketBacklog[road] = ticketBacklog[road] || [];
     ticketBacklog[road].push({ plate, mile1, timestamp1, mile2, timestamp2, speed });
