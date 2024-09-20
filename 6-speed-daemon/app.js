@@ -333,8 +333,9 @@ function checkSpeedLimit(limit, road, plate) {
       }
 
       daysTicketed.push(i);
-      ticketsFound.push({ mile1, timestamp1, mile2, timestamp2, speed });
     }
+
+    ticketsFound.push({ mile1, timestamp1, mile2, timestamp2, speed });
   }
 
   return ticketsFound;
