@@ -127,7 +127,7 @@ function processMessage(chunk, client) {
           const IAMCAMERA_PAYLOAD_SIZE = 2 + 2 + 2; // road (u16) + mile (u16) + limit (u16);
 
           if (messageBuffer.byteLength < IAMCAMERA_PAYLOAD_SIZE) {
-            return;
+            break;
           }
 
           currentMessagePayload = {
