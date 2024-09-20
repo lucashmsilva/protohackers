@@ -338,7 +338,7 @@ function checkSpeedLimit(limit, road, plate) {
     }
 
     if (dayAlreadyTickted) {
-      break;
+      continue;
     }
 
     ticketsFound.push({ mile1, timestamp1, mile2, timestamp2, speed });
@@ -448,11 +448,14 @@ async function main() {
   //   'LR50XNT': {
   //     readings: {
   //       4556: [
-  //         { "mile": 453, "timestamp": 56060007 },
-  //         { "mile": 766, "timestamp": 56044471 },
-  //         { "mile": 401, "timestamp": 56062587 },
-  //         { "mile": 102, "timestamp": 56077428 },
-  //         { "mile": 152, "timestamp": 56074946 }
+  //         { "mile": 491, "timestamp": 49749579 },
+  //         { "mile": 893, "timestamp": 49732389 },
+  //         { "mile": 688, "timestamp": 49741155 },
+  //         { "mile": 626, "timestamp": 49743806 },
+  //         { "mile": 275, "timestamp": 49777056 },
+  //         { "mile": 688, "timestamp": 49791924 },
+  //         { "mile": 491, "timestamp": 49784832 },
+  //         { "mile": 626, "timestamp": 49789692 }
   //       ]
   //     },
   //     daysTicketed: []
