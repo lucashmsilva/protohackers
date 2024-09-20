@@ -80,17 +80,18 @@ function disconnectClient(client, errorMessage) {
 
 function handleClient(client) {
   const { clientConn } = client;
-  clientConn.on('data', (chunk) => processMessage(chunk, client));
-}
-
-function processMessage(chunk, client) {
-  const { id } = client;
-  let bytesReadInBuffer = 0;
-  let [
+  let {
     messageBuffer, // stores the raw message buffer
     currentMessageType, // stores the message type beeing processed
     currentMessagePayload // stores the decoded payload beeing processed.
-  ] = resetClientMessageVariables();
+  } = resetClientMessageVariables();
+
+  clientConn.on('data', (chunk) => processMessage(chunk, client, { messageBuffer, currentMessageType, currentMessagePayload }));
+}
+
+function processMessage(chunk, client, { messageBuffer, currentMessageType, currentMessagePayload }) {
+  const { id } = client;
+  let bytesReadInBuffer = 0;
 
   messageBuffer = Buffer.concat([messageBuffer, chunk]); // concat the previous read buffer with the current read chunk
   while (messageBuffer.byteLength > 0) {
@@ -156,7 +157,7 @@ function processMessage(chunk, client) {
           const IAMDISPATCHER_PAYLOAD_SIZE = (currentMessagePayload.numroads || 1) * 2; // numroads (u8) * roads (u16[])
           if (messageBuffer.byteLength < IAMDISPATCHER_PAYLOAD_SIZE) {
             console.log('IAmDispatcher message not long enought.', messageBuffer.byteLength, IAMDISPATCHER_PAYLOAD_SIZE);
-            
+
             break;
           }
 
@@ -187,7 +188,7 @@ function processMessage(chunk, client) {
           if (messageBuffer.byteLength < currentMessagePayload.plate_size) {
             break;
           }
-          
+
           currentMessagePayload.plate = decodeStr(currentMessagePayload.plate_size, messageBuffer);
           currentMessagePayload.timestamp = messageBuffer.readUInt32BE(currentMessagePayload.plate_size);
           const PLATE_PAYLOAD_SIZE = currentMessagePayload.plate_size + 4; // plate.str (u8[]) + timestamp (u32)
@@ -417,13 +418,13 @@ function resetClientMessageVariables(currentBuffer, offset) {
     messageBuffer = Buffer.from(currentBuffer).subarray(offset);
   }
 
-  return [messageBuffer, messagetype, messagePayload];
+  return { messageBuffer, messagetype, messagePayload };
 }
 
 async function main() {
   setupServer(connectionHandler);
   // processMessage(Buffer.from('20074b4c34365a50510326637f20074e47303148584b0325c32320074d503033514c460326574f2006473131324145032635cf', 'hex'), { id: '::ffff:206.189.113.124:39792' });
-  
+
   // processMessage(Buffer.from('2007514831374447500009919c', 'hex'), { id: '::ffff:206.189.113.124:39792' });
 }
 
