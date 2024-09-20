@@ -188,8 +188,8 @@ function handleClient(client) {
           case MESSAGE_IDS.PLATE:
             if (!cameras[id]) {
               throw new Error('client not registered it is not a camera');
-              
             }
+
             console.log(`${id} | processing Plate message`, messageBuffer.toString('hex'));
 
             if (!currentMessagePayload.plate_size >= 0) {
@@ -448,26 +448,6 @@ function resetClientMessageVariables(currentBuffer, offset) {
 
 async function main() {
   setupServer(connectionHandler);
-  // plateReadings = {
-  //   'LR50XNT': {
-  //     readings: {
-  //       4556: [
-  //         { "mile": 491, "timestamp": 49749579 },
-  //         { "mile": 893, "timestamp": 49732389 },
-  //         { "mile": 688, "timestamp": 49741155 },
-  //         { "mile": 626, "timestamp": 49743806 },
-  //         { "mile": 275, "timestamp": 49777056 },
-  //         { "mile": 688, "timestamp": 49791924 },
-  //         { "mile": 491, "timestamp": 49784832 },
-  //         { "mile": 626, "timestamp": 49789692 }
-  //       ]
-  //     },
-  //     daysTicketed: []
-  //   }
-  // };
-  // plateReadings['LR50XNT'].readings[4556].sort((r1, r2) => r1.timestamp - r2.timestamp);
-  // let tickets = checkSpeedLimit(65, 4556, 'LR50XNT');
-  // console.log(tickets);
 }
 
 main();
