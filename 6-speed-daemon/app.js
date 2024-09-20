@@ -203,7 +203,7 @@ function handleClient(client) {
             currentMessagePayload.plate = decodeStr(currentMessagePayload.plate_size, messageBuffer);
             currentMessagePayload.timestamp = messageBuffer.readUInt32BE(currentMessagePayload.plate_size);
 
-            console.log(`${id} | Plate payload ${JSON.stringify(currentMessagePayload)}`);
+            console.log(`${id} | Plate payload ${JSON.stringify(currentMessagePayload), 'mile',cameras[id].mile}`);
             handlePlateReading(client, currentMessagePayload);
 
             messageBuffer = Buffer.from(messageBuffer).subarray(PLATE_PAYLOAD_SIZE);
@@ -309,7 +309,7 @@ function handlePlateReading(client, platePayload) {
     for (let i = day1; i <= day2; i++) {
       if (plateReadings[plate].daysTicketed.find(day => day === i)) {
         console.log(`${id} | ${plate} has already been ticketed on the ${i} day`);
-        return;
+        break;
       }
     }
 
