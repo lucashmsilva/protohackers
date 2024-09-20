@@ -299,37 +299,45 @@ function handlePlateReading(client, platePayload) {
 
   // console.log(`${id} | plateReadings ${JSON.stringify(plateReadings)}`);
 
-  const [overspeed, mile1, timestamp1, mile2, timestamp2, speed] = checkSpeedLimit(limit, plateReadings[plate].readings[road]); // v = d/t*3600
-  const day1 = Math.floor(timestamp1 / 86400);
-  const day2 = Math.floor(timestamp2 / 86400);
+  const tickets = checkSpeedLimit(limit, plateReadings[plate].readings[road]);
 
-  if (!overspeed) {
-    return;
-  }
+  for (const ticket of tickets) {
+    const { mile1, timestamp1, mile2, timestamp2, speed } = ticket;
+    const day1 = Math.floor(timestamp1 / 86400);
+    const day2 = Math.floor(timestamp2 / 86400);
 
-  for (let i = day1; i <= day2; i++) {
-    if (plateReadings[plate].daysTicketed.find(day => day === i)) {
-      console.log(`${id} | ${plate} has already been ticketed on the ${i} day`);
-      return;
+    for (let i = day1; i <= day2; i++) {
+      if (plateReadings[plate].daysTicketed.find(day => day === i)) {
+        console.log(`${id} | ${plate} has already been ticketed on the ${i} day`);
+        return;
+      }
     }
+
+    for (let i = day1; i <= day2; i++) {
+      plateReadings[plate].daysTicketed.push(i);
+    }
+
+    dispatchTicket({ plate, road, mile1, timestamp1, mile2, timestamp2, speed, limit });
   }
 
-  for (let i = day1; i <= day2; i += 1) {
-    plateReadings[plate].daysTicketed.push(i);
-  }
 
-  // if (plateReadings[plate].daysTicketed.find(day => day === day1)) {
+  // const [overspeed, mile1, timestamp1, mile2, timestamp2, speed] = checkSpeedLimit(limit, plateReadings[plate].readings[road]);
+
+  // if (!overspeed) {
+  //   return;
+  // }
+
+  // if (plateReadings[plate].daysTicketed.find(day => day === day1 || day === day2)) {
   //   return;
   // }
 
   // plateReadings[plate].daysTicketed.push(day1);
   // plateReadings[plate].daysTicketed.push(day2);
-
-  dispatchTicket({ plate, road, mile1, timestamp1, mile2, timestamp2, speed });
 }
 
 function checkSpeedLimit(limit, readings) {
   let overspeed = false;
+  let ticketsFound = [];
 
   for (let i = 1; i < readings.length; i++) {
     const [mile1, timestamp1] = Object.values(readings[i - 1]);
@@ -344,24 +352,24 @@ function checkSpeedLimit(limit, readings) {
 
     if (speed > (limit + 0.3)) {
       overspeed = true;
-      return [overspeed, mile1, timestamp1, mile2, timestamp2, speed];
+      ticketsFound.push({ mile1, timestamp1, mile2, timestamp2, speed });
     }
     // }
   }
 
-  return [overspeed];
+  return ticketsFound;
 }
 
-function dispatchTicket({ plate, road, mile1, timestamp1, mile2, timestamp2, speed }) {
+function dispatchTicket({ plate, road, mile1, timestamp1, mile2, timestamp2, speed, limit }) {
   if (!dispatchers[road]) {
     ticketBacklog[road] = ticketBacklog[road] || [];
-    ticketBacklog[road].push({ plate, mile1, timestamp1, mile2, timestamp2, speed });
+    ticketBacklog[road].push({ plate, mile1, timestamp1, mile2, timestamp2, speed, limit });
 
     return;
   }
 
   const dispatcherId = dispatchers[road][0];
-  sendTicket(clients[dispatcherId], { plate, road, mile1, timestamp1, mile2, timestamp2, speed });
+  sendTicket(clients[dispatcherId], { plate, road, mile1, timestamp1, mile2, timestamp2, speed, limit });
 }
 
 function dispatchTicketBacklog(road) {
@@ -411,8 +419,8 @@ function encodeTicketData({ plate, road, mile1, timestamp1, mile2, timestamp2, s
   return Buffer.concat([encodedPlate, encodedTicket]);
 }
 
-function sendTicket(client, { plate, road, mile1, timestamp1, mile2, timestamp2, speed }) {
-  console.log(`${client.id} | ticket sent`, JSON.stringify({ plate, road, mile1, timestamp1, mile2, timestamp2, speed }), '----', JSON.stringify(plateReadings[plate].daysTicketed));
+function sendTicket(client, { plate, road, mile1, timestamp1, mile2, timestamp2, speed, limit }) {
+  console.log(`${client.id} | ticket sent`, JSON.stringify({ plate, road, mile1, timestamp1, mile2, timestamp2, speed, limit, }), '----', JSON.stringify(plateReadings[plate].daysTicketed));
 
   const { clientConn } = client;
   const encodedTicket = encodeTicketData({ plate, road, mile1, timestamp1, mile2, timestamp2, speed });
