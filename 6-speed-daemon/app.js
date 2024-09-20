@@ -126,7 +126,7 @@ function handleClient(client) {
             const IAMCAMERA_PAYLOAD_SIZE = 2 + 2 + 2; // road (u16) + mile (u16) + limit (u16);
 
             if (messageBuffer.byteLength < IAMCAMERA_PAYLOAD_SIZE) {
-              break;
+              return;
             }
 
             currentMessagePayload = {
@@ -184,7 +184,7 @@ function handleClient(client) {
             }
 
             if (messageBuffer.byteLength < currentMessagePayload.plate_size) {
-              break;
+              return;
             }
 
             currentMessagePayload.plate = decodeStr(currentMessagePayload.plate_size, messageBuffer);
