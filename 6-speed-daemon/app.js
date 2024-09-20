@@ -397,7 +397,7 @@ function encodeTicketData({ plate, road, mile1, timestamp1, mile2, timestamp2, s
 }
 
 function sendTicket(client, { plate, road, mile1, timestamp1, mile2, timestamp2, speed }) {
-  console.log(`${client.id} | ticket sent`, { plate, road, mile1, timestamp1, mile2, timestamp2, speed });
+  console.log(`${client.id} | ticket sent`, JSON.stringify({ plate, road, mile1, timestamp1, mile2, timestamp2, speed }));
   
   const { clientConn } = client;
   const encodedTicket = encodeTicketData({ plate, road, mile1, timestamp1, mile2, timestamp2, speed });
