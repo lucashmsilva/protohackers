@@ -299,62 +299,42 @@ function handlePlateReading(client, platePayload) {
 
   // console.log(`${id} | plateReadings ${JSON.stringify(plateReadings)}`);
 
-  const tickets = checkSpeedLimit(limit, plateReadings[plate].readings[road]);
+  const tickets = checkSpeedLimit(limit, road, plate);
 
   for (const ticket of tickets) {
     const { mile1, timestamp1, mile2, timestamp2, speed } = ticket;
-    const day1 = Math.floor(timestamp1 / 86400);
-    const day2 = Math.floor(timestamp2 / 86400);
-
-    for (let i = day1; i <= day2; i++) {
-      if (plateReadings[plate].daysTicketed.find(day => day === i)) {
-        console.log(`${id} | ${plate} has already been ticketed on the ${i} day`);
-        return;
-      }
-    }
-
-    for (let i = day1; i <= day2; i++) {
-      plateReadings[plate].daysTicketed.push(i);
-    }
-
     dispatchTicket({ plate, road, mile1, timestamp1, mile2, timestamp2, speed, limit });
   }
-
-
-  // const [overspeed, mile1, timestamp1, mile2, timestamp2, speed] = checkSpeedLimit(limit, plateReadings[plate].readings[road]);
-
-  // if (!overspeed) {
-  //   return;
-  // }
-
-  // if (plateReadings[plate].daysTicketed.find(day => day === day1 || day === day2)) {
-  //   return;
-  // }
-
-  // plateReadings[plate].daysTicketed.push(day1);
-  // plateReadings[plate].daysTicketed.push(day2);
 }
 
-function checkSpeedLimit(limit, readings) {
-  let overspeed = false;
+function checkSpeedLimit(limit, road, plate) {
+  let { readings, daysTicketed } = plateReadings[plate];
   let ticketsFound = [];
 
-  for (let i = 1; i < readings.length; i++) {
-    const [mile1, timestamp1] = Object.values(readings[i - 1]);
-    const [mile2, timestamp2] = Object.values(readings[i]);
-
-    // for (let j = i + 1; j < readings.length; j++) {
-    // const [mile2, timestamp2] = Object.values(readings[j]);
+  for (let i = 1; i < readings[road].length; i++) {
+    const [mile1, timestamp1] = Object.values(readings[road][i - 1]);
+    const [mile2, timestamp2] = Object.values(readings[road][i]);
 
     const distance = Math.abs(mile2 - mile1);
     const time = timestamp2 - timestamp1;
     const speed = distance / time * 3600;
 
-    if (speed > (limit + 0.3)) {
-      overspeed = true;
+    if (speed <= (limit + 0.3)) {
+      continue;
+    }
+
+    const day1 = Math.floor(timestamp1 / 86400);
+    const day2 = Math.floor(timestamp2 / 86400);
+
+    for (let i = day1; i <= day2; i++) {
+      if (daysTicketed.find(day => day === i)) {
+        console.log(`${plate} has already been ticketed on the ${i} day`);
+        break;
+      }
+
+      daysTicketed.push(i);
       ticketsFound.push({ mile1, timestamp1, mile2, timestamp2, speed });
     }
-    // }
   }
 
   return ticketsFound;
@@ -457,6 +437,23 @@ function resetClientMessageVariables(currentBuffer, offset) {
 
 async function main() {
   setupServer(connectionHandler);
+  // plateReadings = {
+  //   'LR50XNT': {
+  //     readings: {
+  //       4556: [
+  //         { "mile": 453, "timestamp": 56060007 },
+  //         { "mile": 766, "timestamp": 56044471 },
+  //         { "mile": 401, "timestamp": 56062587 },
+  //         { "mile": 102, "timestamp": 56077428 },
+  //         { "mile": 152, "timestamp": 56074946 }
+  //       ]
+  //     },
+  //     daysTicketed: []
+  //   }
+  // };
+  // plateReadings['LR50XNT'].readings[4556].sort((r1, r2) => r1.timestamp - r2.timestamp);
+  // let tickets = checkSpeedLimit(65, 4556, 'LR50XNT');
+  // console.log(tickets);
 }
 
 main();
