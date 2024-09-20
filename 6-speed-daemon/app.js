@@ -93,7 +93,6 @@ function handleClient(client) {
 
     while (messageBuffer.byteLength > 0) {
       console.log(`${id} | current buffer`, messageBuffer.toString('hex'));
-      console.log('============ buffer size', messageBuffer.byteLength);
 
       if (!currentMessageType) { // if currentMessageType is not set, it means a new message is beeing read. So it reads the first u8 to get the message type
         currentMessageType = Buffer.from(messageBuffer).readUInt8();
@@ -153,7 +152,7 @@ function handleClient(client) {
           case MESSAGE_IDS.IAMDISPATCHER:
             console.log(`${id} | processing IAmDispatcher message`, messageBuffer.toString('hex'));
 
-            if (!currentMessagePayload?.numroads) {
+            if (!currentMessagePayload.numroads) {
               currentMessagePayload = {
                 numroads: messageBuffer.readUInt8()
               }
