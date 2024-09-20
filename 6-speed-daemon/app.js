@@ -74,7 +74,7 @@ function disconnectClient(client, errorMessage) {
 
   if (client.type === MESSAGE_IDS.IAMDISPATCHER) {
     const { roadsResposible } = client;
-    roadsResposible.forEach(road => delete dispatchers[road][id]); //  fix deletion of dispatcher on disconnect
+    roadsResposible.forEach(road => delete dispatchers[road][id]); // TODO: fix deletion of dispatcher on disconnect
     delete dispatchers[id];
   }
 
@@ -84,7 +84,7 @@ function disconnectClient(client, errorMessage) {
 
 function handleClient(client) {
   const { clientConn, id } = client;
-  let messageBuffer = Buffer.alloc(0); // stores the raw message buffer
+  let messageBuffer = Buffer.alloc(0); // stores the raw message buffer for this session
   let currentMessageType = null; // stores the message type beeing processed
   let currentMessagePayload = {}; // stores the decoded payload beeing processed.
 
@@ -121,7 +121,6 @@ function handleClient(client) {
             messageBuffer = Buffer.from(messageBuffer).subarray(WANTHEARTBEAT_PAYLOAD_SIZE);
             currentMessageType = null;
             currentMessagePayload = {};
-            // resetClientMessageVariables(messageBuffer, WANTHEARTBEAT_PAYLOAD_SIZE);
 
             break;
 
@@ -145,7 +144,6 @@ function handleClient(client) {
             messageBuffer = Buffer.from(messageBuffer).subarray(IAMCAMERA_PAYLOAD_SIZE);
             currentMessageType = null;
             currentMessagePayload = {};
-            // resetClientMessageVariables(messageBuffer, IAMCAMERA_PAYLOAD_SIZE);
 
             break;
 
@@ -177,7 +175,6 @@ function handleClient(client) {
             messageBuffer = Buffer.from(messageBuffer).subarray(IAMDISPATCHER_PAYLOAD_SIZE);
             currentMessageType = null;
             currentMessagePayload = {};
-            // resetClientMessageVariables(messageBuffer, IAMDISPATCHER_PAYLOAD_SIZE);
 
             break;
 
@@ -205,7 +202,6 @@ function handleClient(client) {
             messageBuffer = Buffer.from(messageBuffer).subarray(PLATE_PAYLOAD_SIZE);
             currentMessageType = null;
             currentMessagePayload = {};
-            // resetClientMessageVariables(messageBuffer, PLATE_PAYLOAD_SIZE);
 
             break;
 
@@ -223,8 +219,6 @@ function handleClient(client) {
 
   });
 }
-
-function processMessage(chunk, client, { messageBuffer, currentMessageType, currentMessagePayload }) { }
 
 function handleHeartbeat(client, wantHeartbeatPayload) {
   const { clientConn } = client;
@@ -289,9 +283,7 @@ function handlePlateReading(client, platePayload) {
       readings: {
         [road]: []
       },
-      tickets: {
-        [road]: []
-      }
+      daysTicketed: []
     };
   }
 
@@ -305,13 +297,13 @@ function handlePlateReading(client, platePayload) {
     return;
   }
 
-  if (plateReadings[plate].tickets[road].find(ticket => ticket === `${mile1}_${timestamp1}_${mile2}_${timestamp2}`)) {
+  if (plateReadings[plate].daysTicketed.find(ticket => ticket === Math.floor(timestamp1 / 86400))) {
     return;
   }
 
   dispatchTicket({ plate, road, mile1, timestamp1, mile2, timestamp2, speed });
 
-  plateReadings[plate].tickets[road].push(`${mile1}_${timestamp1}_${mile2}_${timestamp2}`);
+  plateReadings[plate].daysTicketed.push(Math.floor(timestamp1 / 86400));
 }
 
 function checkSpeedLimit(limit, readings) {
@@ -327,7 +319,7 @@ function checkSpeedLimit(limit, readings) {
       const time = timestamp2 - timestamp1;
       const speed = distance / time * 3600;
 
-      if (speed > limit) { // rounding
+      if (speed > limit) { // TODO: rounding
         overspeed = true;
         return [overspeed, mile1, timestamp1, mile2, timestamp2, speed];
       }
@@ -357,6 +349,7 @@ function dispatchTicketBacklog(road) {
   }
 
   backlogForRoad.forEach(ticket => dispatchTicket({ road, ...ticket }));
+  delete ticketBacklog[road];
 }
 
 function decodeStr(strLength, buffer) {
@@ -424,20 +417,13 @@ function sendError(client, message) {
 function resetClientMessageVariables(currentBuffer, offset) {
   const messagetype = null;
   const messagePayload = {};
-  let messageBuffer = Buffer.alloc(0);
-
-  if (currentBuffer?.byteLength > offset) {
-    messageBuffer = Buffer.from(currentBuffer).subarray(offset);
-  }
+  let messageBuffer = Buffer.from(currentBuffer).subarray(offset);
 
   return { messageBuffer, messagetype, messagePayload };
 }
 
 async function main() {
   setupServer(connectionHandler);
-  // processMessage(Buffer.from('20074b4c34365a50510326637f20074e47303148584b0325c32320074d503033514c460326574f2006473131324145032635cf', 'hex'), { id: '::ffff:206.189.113.124:39792' });
-
-  // processMessage(Buffer.from('2007514831374447500009919c', 'hex'), { id: '::ffff:206.189.113.124:39792' });
 }
 
 main();
