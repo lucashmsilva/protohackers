@@ -330,7 +330,7 @@ function checkSpeedLimit(limit, readings) {
       const time = timestamp2 - timestamp1;
       const speed = distance / time * 3600;
 
-      if (speed > limit) { // TODO: rounding
+      if (speed.toFixed(2) * 100 > limit.toFixed(2) * 100) { // TODO: rounding
         overspeed = true;
         return [overspeed, mile1, timestamp1, mile2, timestamp2, speed];
       }
