@@ -118,7 +118,7 @@ function processMessage(chunk, client) {
           console.log(`${id} | WantHeartbeat payload ${JSON.stringify(currentMessagePayload)}`);
           handleHeartbeat(client, currentMessagePayload);
 
-          [messageBuffer, currentMessageType, currentMessagePayload] = resetClientMessageVariables(messageBuffer, WANTHEARTBEAT_PAYLOAD_SIZE + bytesReadInBuffer);
+          [messageBuffer, currentMessageType, currentMessagePayload] = [Buffer.from(messageBuffer).subarray(WANTHEARTBEAT_PAYLOAD_SIZE), null, {}] // resetClientMessageVariables(messageBuffer, WANTHEARTBEAT_PAYLOAD_SIZE + bytesReadInBuffer);
           bytesReadInBuffer += WANTHEARTBEAT_PAYLOAD_SIZE;
           break;
 
@@ -139,7 +139,7 @@ function processMessage(chunk, client) {
           console.log(`${id} | IAmCamera payload ${JSON.stringify(currentMessagePayload)}`);
           handleCamera(client, currentMessagePayload);
 
-          [messageBuffer, currentMessageType, currentMessagePayload] = resetClientMessageVariables(messageBuffer, IAMCAMERA_PAYLOAD_SIZE + bytesReadInBuffer);
+          [messageBuffer, currentMessageType, currentMessagePayload] = [Buffer.from(messageBuffer).subarray(IAMCAMERA_PAYLOAD_SIZE), null, {}] // resetClientMessageVariables(messageBuffer, IAMCAMERA_PAYLOAD_SIZE + bytesReadInBuffer);
           bytesReadInBuffer += IAMCAMERA_PAYLOAD_SIZE;
           break;
 
@@ -168,7 +168,7 @@ function processMessage(chunk, client) {
           console.log(`${id} | IAmDispatcher payload ${JSON.stringify(currentMessagePayload)}`);
           handleDispacher(client, currentMessagePayload);
 
-          [messageBuffer, currentMessageType, currentMessagePayload] = resetClientMessageVariables(messageBuffer, IAMDISPATCHER_PAYLOAD_SIZE + bytesReadInBuffer);
+          [messageBuffer, currentMessageType, currentMessagePayload] = [Buffer.from(messageBuffer).subarray(IAMDISPATCHER_PAYLOAD_SIZE), null, {}] // resetClientMessageVariables(messageBuffer, IAMDISPATCHER_PAYLOAD_SIZE + bytesReadInBuffer);
           bytesReadInBuffer += IAMDISPATCHER_PAYLOAD_SIZE;
           break;
 
