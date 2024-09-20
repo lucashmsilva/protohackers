@@ -332,8 +332,8 @@ function checkSpeedLimit(limit, readings) {
   let overspeed = false;
 
   for (let i = 1; i < readings.length; i++) {
-    const [mile1, timestamp1] = Object.values(readings[i]);
-    const [mile2, timestamp2] = Object.values(readings[i - 1]);
+    const [mile1, timestamp1] = Object.values(readings[i - 1]);
+    const [mile2, timestamp2] = Object.values(readings[i]);
 
     // for (let j = i + 1; j < readings.length; j++) {
     // const [mile2, timestamp2] = Object.values(readings[j]);
