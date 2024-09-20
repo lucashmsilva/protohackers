@@ -54,6 +54,10 @@ async function connectionHandler(clientConn) {
 function disconnectClient(client, errorMessage) {
   const { id, heartbeatTimer, clientConn } = client;
 
+  if (!clients[id]) {
+    return;
+  }
+
   console.log(`${id} | client disconnected`);
 
   if (heartbeatTimer) {
@@ -79,7 +83,7 @@ function disconnectClient(client, errorMessage) {
 }
 
 function handleClient(client) {
-  const { clientConn } = client;
+  const { clientConn, id } = client;
   let {
     messageBuffer, // stores the raw message buffer
     currentMessageType, // stores the message type beeing processed
@@ -87,11 +91,8 @@ function handleClient(client) {
   } = resetClientMessageVariables();
 
   clientConn.on('data', (chunk) => {
-
-    const { id } = client;
-    let bytesReadInBuffer = 0;
-
     messageBuffer = Buffer.concat([messageBuffer, chunk]); // concat the previous read buffer with the current read chunk
+
     while (messageBuffer.byteLength > 0) {
       console.log(`${id} | current buffer`, messageBuffer.toString('hex'));
       console.log('============ buffer size', messageBuffer.byteLength);
@@ -117,8 +118,8 @@ function handleClient(client) {
             console.log(`${id} | WantHeartbeat payload ${JSON.stringify(currentMessagePayload)}`);
             handleHeartbeat(client, currentMessagePayload);
 
-            [messageBuffer, currentMessageType, currentMessagePayload] = [Buffer.from(messageBuffer).subarray(WANTHEARTBEAT_PAYLOAD_SIZE), null, {}] // resetClientMessageVariables(messageBuffer, WANTHEARTBEAT_PAYLOAD_SIZE + bytesReadInBuffer);
-            bytesReadInBuffer += WANTHEARTBEAT_PAYLOAD_SIZE;
+            [messageBuffer, currentMessageType, currentMessagePayload] = [Buffer.from(messageBuffer).subarray(WANTHEARTBEAT_PAYLOAD_SIZE), null, {}] // resetClientMessageVariables(messageBuffer, WANTHEARTBEAT_PAYLOAD_SIZE);
+
             break;
 
           case MESSAGE_IDS.IAMCAMERA:
@@ -138,14 +139,14 @@ function handleClient(client) {
             console.log(`${id} | IAmCamera payload ${JSON.stringify(currentMessagePayload)}`);
             handleCamera(client, currentMessagePayload);
 
-            [messageBuffer, currentMessageType, currentMessagePayload] = [Buffer.from(messageBuffer).subarray(IAMCAMERA_PAYLOAD_SIZE), null, {}] // resetClientMessageVariables(messageBuffer, IAMCAMERA_PAYLOAD_SIZE + bytesReadInBuffer);
-            bytesReadInBuffer += IAMCAMERA_PAYLOAD_SIZE;
+            [messageBuffer, currentMessageType, currentMessagePayload] = [Buffer.from(messageBuffer).subarray(IAMCAMERA_PAYLOAD_SIZE), null, {}] // resetClientMessageVariables(messageBuffer, IAMCAMERA_PAYLOAD_SIZE);
+
             break;
 
           case MESSAGE_IDS.IAMDISPATCHER:
             console.log(`${id} | processing IAmDispatcher message`, messageBuffer.toString('hex'));
 
-            if (!currentMessagePayload.numroads) {
+            if (!currentMessagePayload?.numroads) {
               currentMessagePayload = {
                 numroads: messageBuffer.readUInt8()
               }
@@ -167,8 +168,8 @@ function handleClient(client) {
             console.log(`${id} | IAmDispatcher payload ${JSON.stringify(currentMessagePayload)}`);
             handleDispacher(client, currentMessagePayload);
 
-            [messageBuffer, currentMessageType, currentMessagePayload] = [Buffer.from(messageBuffer).subarray(IAMDISPATCHER_PAYLOAD_SIZE), null, {}] // resetClientMessageVariables(messageBuffer, IAMDISPATCHER_PAYLOAD_SIZE + bytesReadInBuffer);
-            bytesReadInBuffer += IAMDISPATCHER_PAYLOAD_SIZE;
+            [messageBuffer, currentMessageType, currentMessagePayload] = [Buffer.from(messageBuffer).subarray(IAMDISPATCHER_PAYLOAD_SIZE), null, {}] // resetClientMessageVariables(messageBuffer, IAMDISPATCHER_PAYLOAD_SIZE);
+
             break;
 
           case MESSAGE_IDS.PLATE:
@@ -190,10 +191,9 @@ function handleClient(client) {
             const PLATE_PAYLOAD_SIZE = currentMessagePayload.plate_size + 4; // plate.str (u8[]) + timestamp (u32)
 
             console.log(`${id} | Plate payload ${JSON.stringify(currentMessagePayload)}`);
-            // handlePlateReading(client, currentMessagePayload);
+            handlePlateReading(client, currentMessagePayload);
 
-            [messageBuffer, currentMessageType, currentMessagePayload] = [Buffer.from(messageBuffer).subarray(PLATE_PAYLOAD_SIZE), null, {}] // resetClientMessageVariables(messageBuffer, PLATE_PAYLOAD_SIZE + bytesReadInBuffer);
-            bytesReadInBuffer += PLATE_PAYLOAD_SIZE;
+            [messageBuffer, currentMessageType, currentMessagePayload] = [Buffer.from(messageBuffer).subarray(PLATE_PAYLOAD_SIZE), null, {}] // resetClientMessageVariables(messageBuffer, PLATE_PAYLOAD_SIZE);
 
             break;
 
