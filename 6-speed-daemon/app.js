@@ -311,10 +311,10 @@ function handlePlateReading(client, platePayload) {
     return;
   }
 
-  dispatchTicket({ plate, road, mile1, timestamp1, mile2, timestamp2, speed });
-
   plateReadings[plate].daysTicketed.push(day1);
   plateReadings[plate].daysTicketed.push(day2);
+
+  dispatchTicket({ plate, road, mile1, timestamp1, mile2, timestamp2, speed });
 }
 
 function checkSpeedLimit(limit, readings) {
