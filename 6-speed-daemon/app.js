@@ -1,11 +1,11 @@
 const net = require('net');
 
 const PORT = 6767;
-const cameras = {};
-const dispatchers = {};
-const clients = {};
-const plateReadings = {};
-const ticketBacklog = {};
+let cameras = {};
+let dispatchers = {};
+let clients = {};
+let plateReadings = {};
+let ticketBacklog = {};
 
 const MESSAGE_IDS = {
   ERROR: 0x10,
@@ -46,6 +46,14 @@ async function connectionHandler(clientConn) {
 
   clientConn.on('close', () => {
     disconnectClient(client);
+
+    if (Object.keys(clients).length === 0) {
+      cameras = {};
+      dispatchers = {};
+      clients = {};
+      plateReadings = {};
+      ticketBacklog = {};
+    }
   });
 
   handleClient(client);
@@ -74,7 +82,7 @@ function disconnectClient(client, errorMessage) {
 
   if (client.type === MESSAGE_IDS.IAMDISPATCHER) {
     const { roadsResposible } = client;
-    roadsResposible.forEach(road => delete dispatchers[road][id]); // TODO: fix deletion of dispatcher on disconnect
+    roadsResposible.forEach(road => dispatchers[road] = dispatchers[road]?.filter(dispacherId => dispacherId !== id));
     delete dispatchers[id];
   }
 
@@ -196,7 +204,7 @@ function handleClient(client) {
             currentMessagePayload.plate = decodeStr(currentMessagePayload.plate_size, messageBuffer);
             currentMessagePayload.timestamp = messageBuffer.readUInt32BE(currentMessagePayload.plate_size);
 
-            console.log(`${id} | Plate payload ${JSON.stringify(currentMessagePayload)}`);
+            // console.log(`${id} | Plate payload ${JSON.stringify(currentMessagePayload)}`);
             handlePlateReading(client, currentMessagePayload);
 
             messageBuffer = Buffer.from(messageBuffer).subarray(PLATE_PAYLOAD_SIZE);
