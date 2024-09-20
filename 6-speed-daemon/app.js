@@ -186,6 +186,10 @@ function handleClient(client) {
             break;
 
           case MESSAGE_IDS.PLATE:
+            if (!cameras[id]) {
+              throw new Error('client not registered it is not a camera');
+              
+            }
             console.log(`${id} | processing Plate message`, messageBuffer.toString('hex'));
 
             if (!currentMessagePayload.plate_size >= 0) {
