@@ -1,0 +1,84 @@
+[Fri Sep 20 00:47:51 2024 UTC] [0heartbeats.test] NOTE:check starts
+[Fri Sep 20 00:47:51 2024 UTC] [0heartbeats.test] NOTE:checking whether heartbeats work
+[Fri Sep 20 00:47:51 2024 UTC] [0heartbeats.test] NOTE:connected to 66.228.43.192 port 6767
+[Fri Sep 20 00:47:52 2024 UTC] [0heartbeats.test] NOTE:connected to 66.228.43.192 port 6767
+[Fri Sep 20 00:47:54 2024 UTC] [0heartbeats.test] NOTE:heartbeat 1
+[Fri Sep 20 00:47:55 2024 UTC] [0heartbeats.test] NOTE:heartbeat 2
+[Fri Sep 20 00:47:56 2024 UTC] [0heartbeats.test] NOTE:heartbeat 3
+[Fri Sep 20 00:47:57 2024 UTC] [0heartbeats.test] NOTE:heartbeat 4
+[Fri Sep 20 00:47:58 2024 UTC] [0heartbeats.test] NOTE:heartbeat 5
+[Fri Sep 20 00:47:58 2024 UTC] [0heartbeats.test] PASS
+[Fri Sep 20 00:47:59 2024 UTC] [1car.test] NOTE:check starts
+[Fri Sep 20 00:47:59 2024 UTC] [1car.test] NOTE:checking whether server handles a single car
+[Fri Sep 20 00:47:59 2024 UTC] [1car.test] NOTE:connected to 66.228.43.192 port 6767
+[Fri Sep 20 00:47:59 2024 UTC] [1car.test] NOTE:connected to 66.228.43.192 port 6767
+[Fri Sep 20 00:47:59 2024 UTC] [1car.test] NOTE:connected to 66.228.43.192 port 6767
+[Fri Sep 20 00:48:00 2024 UTC] [1car.test] FAIL:illegal msg type
+
+server started on 6767
+::ffff:206.189.113.124:34210 | client connected
+::ffff:206.189.113.124:34210 | current buffer 4000000000
+============ buffer size 5
+============ bytesReadInBuffer 0
+::ffff:206.189.113.124:34210 | message type 64
+::ffff:206.189.113.124:34210 | processing WantHeartbeat message 00000000
+::ffff:206.189.113.124:34210 | WantHeartbeat payload {"interval":0}
+::ffff:206.189.113.124:34212 | client connected
+::ffff:206.189.113.124:34212 | current buffer 400000000a
+============ buffer size 5
+============ bytesReadInBuffer 0
+::ffff:206.189.113.124:34212 | message type 64
+::ffff:206.189.113.124:34212 | processing WantHeartbeat message 0000000a
+::ffff:206.189.113.124:34212 | WantHeartbeat payload {"interval":10}
+::ffff:206.189.113.124:34210 | client disconnected
+::ffff:206.189.113.124:34212 | client disconnected
+::ffff:206.189.113.124:36146 | client connected
+::ffff:206.189.113.124:36148 | client connected
+::ffff:206.189.113.124:36150 | client connected
+::ffff:206.189.113.124:36150 | current buffer 8101
+============ buffer size 2
+============ bytesReadInBuffer 0
+::ffff:206.189.113.124:36150 | message type 129
+::ffff:206.189.113.124:36150 | processing IAmDispatcher message 01
+::ffff:206.189.113.124:36148 | current buffer 800c331b9f0064
+============ buffer size 7
+============ bytesReadInBuffer 0
+::ffff:206.189.113.124:36148 | message type 128
+::ffff:206.189.113.124:36148 | processing IAmCamera message 0c331b9f0064
+::ffff:206.189.113.124:36148 | IAmCamera payload {"road":3123,"mile":7071,"limit":100}
+::ffff:206.189.113.124:36148 | cameras {"::ffff:206.189.113.124:36148":{"road":3123,"mile":7071,"limit":100}}
+::ffff:206.189.113.124:36146 | current buffer 800c331b950064
+============ buffer size 7
+============ bytesReadInBuffer 0
+::ffff:206.189.113.124:36146 | message type 128
+::ffff:206.189.113.124:36146 | processing IAmCamera message 0c331b950064
+::ffff:206.189.113.124:36146 | IAmCamera payload {"road":3123,"mile":7061,"limit":100}
+::ffff:206.189.113.124:36146 | cameras {"::ffff:206.189.113.124:36148":{"road":3123,"mile":7071,"limit":100},"::ffff:206.189.113.124:36146":{"road":3123,"mile":7061,"limit":100}}
+::ffff:206.189.113.124:36150 | current buffer 0c33
+============ buffer size 2
+============ bytesReadInBuffer 0
+::ffff:206.189.113.124:36150 | message type 12
+::ffff:206.189.113.124:36150 | Error  Error: illegal msg type
+    at processMessage (/root/apps/protohackers/6-speed-daemon/app.js:202:17)
+    at Socket.<anonymous> (/root/apps/protohackers/6-speed-daemon/app.js:83:36)
+    at Socket.emit (node:events:519:28)
+    at addChunk (node:internal/streams/readable:561:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+    at Readable.push (node:internal/streams/readable:392:5)
+    at TCP.onStreamRead (node:internal/stream_base_commons:189:23)
+::ffff:206.189.113.124:36150 | client disconnected
+::ffff:206.189.113.124:36150 | client disconnected
+::ffff:206.189.113.124:36148 | current buffer 2007414a30314d5843000148c4
+============ buffer size 13
+============ bytesReadInBuffer 0
+::ffff:206.189.113.124:36148 | message type 32
+::ffff:206.189.113.124:36148 | processing Plate message 07414a30314d5843000148c4
+::ffff:206.189.113.124:36148 | Plate payload {"plate_size":7,"plate":"AJ01MXC","timestamp":84164}
+::ffff:206.189.113.124:36146 | current buffer 2007414a30314d584300014798
+============ buffer size 13
+============ bytesReadInBuffer 0
+::ffff:206.189.113.124:36146 | message type 32
+::ffff:206.189.113.124:36146 | processing Plate message 07414a30314d584300014798
+::ffff:206.189.113.124:36146 | Plate payload {"plate_size":7,"plate":"AJ01MXC","timestamp":83864}
+::ffff:206.189.113.124:36148 | client disconnected
+::ffff:206.189.113.124:36146 | client disconnected
