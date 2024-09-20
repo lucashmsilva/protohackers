@@ -300,8 +300,8 @@ function handlePlateReading(client, platePayload) {
   // console.log(`${id} | plateReadings ${JSON.stringify(plateReadings)}`);
 
   const [overspeed, mile1, timestamp1, mile2, timestamp2, speed] = checkSpeedLimit(limit, plateReadings[plate].readings[road]); // v = d/t*3600
-  const day1 = timestamp1 / 86400;
-  const day2 = timestamp2 / 86400;
+  const day1 = Math.floor(timestamp1 / 86400);
+  const day2 = Math.floor(timestamp2 / 86400);
 
   if (!overspeed) {
     return;
