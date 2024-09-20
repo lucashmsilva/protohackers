@@ -407,8 +407,6 @@ function sendError(client, message) {
 }
 
 function resetClientMessageVariables(currentBuffer, offset) {
-  console.log('=========== offset', offset);
-  
   const messagetype = null;
   const messagePayload = {};
   let messageBuffer = Buffer.alloc(0);
@@ -423,6 +421,8 @@ function resetClientMessageVariables(currentBuffer, offset) {
 async function main() {
   setupServer(connectionHandler);
   // processMessage(Buffer.from('20074b4c34365a50510326637f20074e47303148584b0325c32320074d503033514c460326574f2006473131324145032635cf', 'hex'), { id: '::ffff:206.189.113.124:39792' });
+  
+  // processMessage(Buffer.from('2007514831374447500009919c', 'hex'), { id: '::ffff:206.189.113.124:39792' });
 }
 
 main();
