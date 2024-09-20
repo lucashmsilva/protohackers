@@ -337,6 +337,10 @@ function checkSpeedLimit(limit, readings) {
 }
 
 function dispatchTicket({ plate, road, mile1, timestamp1, mile2, timestamp2, speed }) {
+  if (plateReadings[plate].daysTicketed.find(ticket => ticket === Math.floor(timestamp1 / 86400))) {
+    return;
+  }
+
   if (!dispatchers[road]) {
     ticketBacklog[road] = ticketBacklog[road] || [];
     ticketBacklog[road].push({ plate, mile1, timestamp1, mile2, timestamp2, speed });
@@ -396,6 +400,8 @@ function encodeTicketData({ plate, road, mile1, timestamp1, mile2, timestamp2, s
 }
 
 function sendTicket(client, { plate, road, mile1, timestamp1, mile2, timestamp2, speed }) {
+  console.log(`${client.id} | ticket sent`, { plate, road, mile1, timestamp1, mile2, timestamp2, speed });
+  
   const { clientConn } = client;
   const encodedTicket = encodeTicketData({ plate, road, mile1, timestamp1, mile2, timestamp2, speed });
 
