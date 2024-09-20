@@ -85,7 +85,7 @@ function handleClient(client) {
 
 function processMessage(chunk, client) {
   const { id } = client;
-  let messagesReadInBuffer = 0;
+  let bytesReadInBuffer = 0;
   let [
     messageBuffer, // stores the raw message buffer
     currentMessageType, // stores the message type beeing processed
@@ -95,8 +95,9 @@ function processMessage(chunk, client) {
   messageBuffer = Buffer.concat([messageBuffer, chunk]); // concat the previous read buffer with the current read chunk
   while (messageBuffer.byteLength > 0) {
     console.log(`${id} | current buffer`, messageBuffer.toString('hex'));
+    console.log('============ buffer size', messageBuffer.byteLength);
+    console.log('============ bytesReadInBuffer', bytesReadInBuffer)
 
-    messagesReadInBuffer++;
     if (!currentMessageType) { // if currentMessageType is not set, it means a new message is beeing read. So it reads the first u8 to get the message type
       currentMessageType = Buffer.from(messageBuffer).readUInt8();
       messageBuffer = Buffer.from(messageBuffer).subarray(1); // overrides the current message buffer with the rest of the chunk (chunk minus the first u8 that was read)
@@ -117,14 +118,15 @@ function processMessage(chunk, client) {
           console.log(`${id} | WantHeartbeat payload ${JSON.stringify(currentMessagePayload)}`);
           handleHeartbeat(client, currentMessagePayload);
 
-          [messageBuffer, currentMessageType, currentMessagePayload] = resetClientMessageVariables(messageBuffer, WANTHEARTBEAT_PAYLOAD_SIZE * messagesReadInBuffer);
+          [messageBuffer, currentMessageType, currentMessagePayload] = resetClientMessageVariables(messageBuffer, WANTHEARTBEAT_PAYLOAD_SIZE + bytesReadInBuffer);
+          bytesReadInBuffer += WANTHEARTBEAT_PAYLOAD_SIZE;
           break;
 
         case MESSAGE_IDS.IAMCAMERA:
           console.log(`${id} | processing IAmCamera message`, messageBuffer.toString('hex'));
           const IAMCAMERA_PAYLOAD_SIZE = 2 + 2 + 2; // road (u16) + mile (u16) + limit (u16);
 
-          if (messageBuffer.byteLength < IAMCAMERA_PAYLOAD_SIZE * messagesReadInBuffer) {
+          if (messageBuffer.byteLength < IAMCAMERA_PAYLOAD_SIZE) {
             return;
           }
 
@@ -137,7 +139,8 @@ function processMessage(chunk, client) {
           console.log(`${id} | IAmCamera payload ${JSON.stringify(currentMessagePayload)}`);
           handleCamera(client, currentMessagePayload);
 
-          [messageBuffer, currentMessageType, currentMessagePayload] = resetClientMessageVariables(messageBuffer, IAMCAMERA_PAYLOAD_SIZE * messagesReadInBuffer);
+          [messageBuffer, currentMessageType, currentMessagePayload] = resetClientMessageVariables(messageBuffer, IAMCAMERA_PAYLOAD_SIZE + bytesReadInBuffer);
+          bytesReadInBuffer += IAMCAMERA_PAYLOAD_SIZE;
           break;
 
         case MESSAGE_IDS.IAMDISPATCHER:
@@ -165,7 +168,8 @@ function processMessage(chunk, client) {
           console.log(`${id} | IAmDispatcher payload ${JSON.stringify(currentMessagePayload)}`);
           handleDispacher(client, currentMessagePayload);
 
-          [messageBuffer, currentMessageType, currentMessagePayload] = resetClientMessageVariables(messageBuffer, IAMDISPATCHER_PAYLOAD_SIZE * messagesReadInBuffer);
+          [messageBuffer, currentMessageType, currentMessagePayload] = resetClientMessageVariables(messageBuffer, IAMDISPATCHER_PAYLOAD_SIZE + bytesReadInBuffer);
+          bytesReadInBuffer += IAMDISPATCHER_PAYLOAD_SIZE;
           break;
 
         case MESSAGE_IDS.PLATE:
@@ -178,20 +182,20 @@ function processMessage(chunk, client) {
             messageBuffer = Buffer.from(messageBuffer).subarray(1);
           }
 
-          const PLATE_STR_PAYLOAD_SIZE = currentMessagePayload.plate_size; // str.length (u8)
-          if (messageBuffer.byteLength < PLATE_STR_PAYLOAD_SIZE) {
+          if (messageBuffer.byteLength < currentMessagePayload.plate_size) {
             return;
           }
-
-          currentMessagePayload.plate = decodeStr(PLATE_STR_PAYLOAD_SIZE, messageBuffer);
-          currentMessagePayload.timestamp = messageBuffer.readUInt32BE(PLATE_STR_PAYLOAD_SIZE);
+          
+          currentMessagePayload.plate = decodeStr(currentMessagePayload.plate_size, messageBuffer);
+          currentMessagePayload.timestamp = messageBuffer.readUInt32BE(currentMessagePayload.plate_size);
+          const PLATE_PAYLOAD_SIZE = currentMessagePayload.plate_size + 4; // plate.str (u8[]) + timestamp (u32)
 
           console.log(`${id} | Plate payload ${JSON.stringify(currentMessagePayload)}`);
           // handlePlateReading(client, currentMessagePayload);
 
-          console.log('============ buffer size', messageBuffer.byteLength);
-          [messageBuffer, currentMessageType, currentMessagePayload] = resetClientMessageVariables(messageBuffer, 1 + PLATE_STR_PAYLOAD_SIZE + 4 * messagesReadInBuffer); // plate.length (u8) + plate.str (u8[]) + timestamp (u32)
-          console.log('============ buffer size', messageBuffer.byteLength);
+          [messageBuffer, currentMessageType, currentMessagePayload] = [Buffer.from(messageBuffer).subarray(PLATE_PAYLOAD_SIZE), null, {}] // resetClientMessageVariables(messageBuffer, PLATE_PAYLOAD_SIZE + bytesReadInBuffer);
+          bytesReadInBuffer += PLATE_PAYLOAD_SIZE;
+
           break;
 
         default:
@@ -403,6 +407,8 @@ function sendError(client, message) {
 }
 
 function resetClientMessageVariables(currentBuffer, offset) {
+  console.log('=========== offset', offset);
+  
   const messagetype = null;
   const messagePayload = {};
   let messageBuffer = Buffer.alloc(0);
