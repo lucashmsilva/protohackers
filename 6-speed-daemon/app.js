@@ -154,9 +154,7 @@ function handleClient(client) {
 
             const IAMDISPATCHER_PAYLOAD_SIZE = (currentMessagePayload.numroads || 1) * 2; // numroads (u8) * roads (u16[])
             if (messageBuffer.byteLength < IAMDISPATCHER_PAYLOAD_SIZE) {
-              console.log('IAmDispatcher message not long enought.', messageBuffer.byteLength, IAMDISPATCHER_PAYLOAD_SIZE);
-
-              break;
+              return;
             }
 
             let roadsRead = 0;
