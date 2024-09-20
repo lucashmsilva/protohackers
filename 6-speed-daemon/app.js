@@ -325,14 +325,20 @@ function checkSpeedLimit(limit, road, plate) {
 
     const day1 = Math.floor(timestamp1 / 86400);
     const day2 = Math.floor(timestamp2 / 86400);
+    let dayAlreadyTickted = false;
 
     for (let i = day1; i <= day2; i++) {
       if (daysTicketed.find(day => day === i)) {
         console.log(`${plate} has already been ticketed on the ${i} day`);
+        dayAlreadyTickted = true;
         break;
       }
 
       daysTicketed.push(i);
+    }
+
+    if (dayAlreadyTickted) {
+      break;
     }
 
     ticketsFound.push({ mile1, timestamp1, mile2, timestamp2, speed });
