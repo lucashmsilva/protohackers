@@ -203,7 +203,7 @@ function handleClient(client) {
             currentMessagePayload.plate = decodeStr(currentMessagePayload.plate_size, messageBuffer);
             currentMessagePayload.timestamp = messageBuffer.readUInt32BE(currentMessagePayload.plate_size);
 
-            console.log(`${id} | Plate payload ${JSON.stringify(currentMessagePayload), 'mile',cameras[id].mile}`);
+            console.log(`${id} | Plate payload ${JSON.stringify(currentMessagePayload)}`, 'mile:', cameras[id].mile);
             handlePlateReading(client, currentMessagePayload);
 
             messageBuffer = Buffer.from(messageBuffer).subarray(PLATE_PAYLOAD_SIZE);
