@@ -44,7 +44,6 @@ server.on('message', (buffer, rinfo) => {
     default:
       break;
   }
-
 });
 
 server.on('listening', () => {
