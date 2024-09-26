@@ -303,9 +303,9 @@ function handlePlateReading(client, platePayload) {
 
   // console.log(`${id} | plateReadings ${JSON.stringify(plateReadings)}`);
 
-  const tickets = checkSpeedLimit(limit, road, plate);
+  const newTickets = checkSpeedLimit(limit, road, plate);
 
-  for (const ticket of tickets) {
+  for (const ticket of newTickets) {
     const { mile1, timestamp1, mile2, timestamp2, speed } = ticket;
     dispatchTicket({ plate, road, mile1, timestamp1, mile2, timestamp2, speed, limit });
   }
@@ -351,16 +351,15 @@ function checkSpeedLimit(limit, road, plate) {
   return ticketsFound;
 }
 
-function dispatchTicket({ plate, road, mile1, timestamp1, mile2, timestamp2, speed, limit }) {
+function dispatchTicket({ plate, road, mile1, timestamp1, mile2, timestamp2, speed }) {
   if (!dispatchers[road]) {
     ticketBacklog[road] = ticketBacklog[road] || [];
-    ticketBacklog[road].push({ plate, mile1, timestamp1, mile2, timestamp2, speed, limit });
-
+    ticketBacklog[road].push({ plate, mile1, timestamp1, mile2, timestamp2, speed });
     return;
   }
 
   const dispatcherId = dispatchers[road][0];
-  sendTicket(clients[dispatcherId], { plate, road, mile1, timestamp1, mile2, timestamp2, speed, limit });
+  sendTicket(clients[dispatcherId], { plate, road, mile1, timestamp1, mile2, timestamp2, speed });
 }
 
 function dispatchTicketBacklog(road) {
@@ -370,8 +369,8 @@ function dispatchTicketBacklog(road) {
     return;
   }
 
-  backlogForRoad.forEach(ticket => dispatchTicket({ road, ...ticket }));
   delete ticketBacklog[road];
+  backlogForRoad.forEach(ticket => dispatchTicket({ road, ...ticket }));
 }
 
 function decodeStr(strLength, buffer) {
@@ -410,26 +409,23 @@ function encodeTicketData({ plate, road, mile1, timestamp1, mile2, timestamp2, s
   return Buffer.concat([encodedPlate, encodedTicket]);
 }
 
-function sendTicket(client, { plate, road, mile1, timestamp1, mile2, timestamp2, speed, limit }) {
-  console.log(`${client.id} | ticket sent`, JSON.stringify({ plate, road, mile1, timestamp1, mile2, timestamp2, speed, limit, }), '----', JSON.stringify(plateReadings[plate].daysTicketed));
-
+function sendTicket(client, { plate, road, mile1, timestamp1, mile2, timestamp2, speed }) {
   const { clientConn } = client;
+  
+  const ticketMessageTypePrefix = Buffer.alloc(1).writeInt8(MESSAGE_IDS.TICKET);
   const encodedTicket = encodeTicketData({ plate, road, mile1, timestamp1, mile2, timestamp2, speed });
 
-  const ticketMessageTypePrefix = Buffer.alloc(1);
-  ticketMessageTypePrefix.writeInt8(MESSAGE_IDS.TICKET);
-
   const ticketPaylod = Buffer.concat([ticketMessageTypePrefix, encodedTicket]);
-
   clientConn.write(ticketPaylod);
+
+  console.log(`${client.id} | ticket sent ${JSON.stringify({ plate, road, mile1, timestamp1, mile2, timestamp2, speed, })}`);
 }
 
 function sendError(client, message) {
   const { clientConn } = client;
   const encodedMessage = encodeStr(message);
 
-  const errorMessageTypePrefix = Buffer.alloc(1);
-  errorMessageTypePrefix.writeInt8(MESSAGE_IDS.ERROR);
+  const errorMessageTypePrefix = Buffer.alloc(1).writeInt8(MESSAGE_IDS.ERROR);
 
   const errorPaylod = Buffer.concat([errorMessageTypePrefix, encodedMessage]);
 
