@@ -44,8 +44,9 @@ server.on('message', (buffer, rinfo) => {
       break;
 
     case 'data':
-      const payload = messageParts.join('/');
-      console.log('data message', payload);
+      const dataPosition = messageParts.shift();
+      const payload = messageParts.shift();
+      console.log('data message', dataPosition, payload);
       // stream.write(payload);
       break;
 
