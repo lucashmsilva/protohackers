@@ -30,6 +30,7 @@ server.on('message', (buffer, rinfo) => {
   const messageType = messageParts.shift();
   const sessionId = messageParts.shift();
   const { address, port } = rinfo;
+  console.log('>>>>>>>>>>>>>>>>', messageType);
 
   switch (messageType) {
     case 'connect':
@@ -37,13 +38,32 @@ server.on('message', (buffer, rinfo) => {
         address, port,
         sessionOpen: true
       }
+      // emit connect
 
       server.send(Buffer.from(`/ack/${sessionId}/0/`), port, address);
+      break;
+
+    case 'data':
+      const payload = messageParts.join('/');
+      console.log('data message', payload);
+      // stream.write(payload);
+      break;
+
+    case 'ack':
+      const ackPosition = messageParts.join('/')
+      console.log('ack message', sessionId, ackPosition);
+
+      break;
+
+    case 'close':
+      console.log('close message', sessionId);
+
       break;
 
     default:
       break;
   }
+
 });
 
 server.on('listening', () => {
